@@ -4,7 +4,6 @@ import os.path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-#Поменять ключ
 SECRET_KEY = '!13t9(!iar0(xx=pa-_dnk$di&#^!wqfx5tur88qgiu_q3h6as'
 
 DEBUG = True

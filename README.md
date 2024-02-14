@@ -15,13 +15,13 @@ SQLite 3.22+
 Склонировать проект
 
 
-Открыть проект в PyCharm с наcтройками по умолчанию
+Открыть проект в IDE с наcтройками по умолчанию
 
 
 Создать виртуальное окружение (через settings -> project "simple votings" -> project interpreter)
 
 
-Открыть терминал в PyCharm, проверить, что виртуальное окружение активировано.
+Открыть терминал в IDE, проверить, что виртуальное окружение активировано.
 
 
 Обновить pip:
@@ -33,7 +33,7 @@ pip install --upgrade pip
 
 Установить в виртуальное окружение необходимые пакеты:
 
-pip install -r requirements.txt
+pip install -r req.txt
 
 
 
@@ -57,13 +57,6 @@ python manage.py migrate
 
 Создать суперпользователя
 
-python manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.create_superuser('vasya', '1@abc.net', 'promprog')"
+python manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.create_superuser('123@gmail.com', '123')"
 
 
-
-
-Создать конфигурацию запуска в PyCharm (файл manage.py, опция runserver)
-
-
-Внимание! Создана отдельная модель пользователя в модуле main!
-При создании ForeignKey'ев на User'а - использовать её при помощи встроенной функции get_user_model.

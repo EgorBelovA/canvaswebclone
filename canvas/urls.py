@@ -4,5 +4,7 @@ from django.conf.urls import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('canvas_app.urls')),
+    # path('api', include('canvas_app.urls')),
+    # path('', include('frontend.urls')),
+    # path('api-auth/', include('rest_framework.urls'))
 ]
