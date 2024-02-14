@@ -1,10 +1,11 @@
 import os.path
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Application definition
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -13,6 +14,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'frontend',
+    'canvas_app',
+    'rest_framework',
+    'django.contrib.sites',
 ]
 
 MIDDLEWARE = [
@@ -26,6 +31,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'canvas.urls'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
+    ]
+}
+
 
 TEMPLATES = [
     {
@@ -43,19 +56,10 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'canvas.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
-
-
-
-
-
-# Password validation
-# https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -73,8 +77,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/3.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -86,9 +88,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+LOGIN_REDIRECT_URL = 'canvas'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
 
