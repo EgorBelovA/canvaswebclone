@@ -1,26 +1,17 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { memo } from 'react';
+import type { FC } from 'react';
 
-function App() {
+import classes from './App.module.css';
+import resets from './components/_resets.module.css';
+import { Desktop1 } from './components/Desktop1/Desktop1';
+
+interface Props {
+  className?: string;
+}
+export const App: FC<Props> = memo(function App(props = {}) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={`${resets.storybrainResets} ${classes.root}`}>
+      <Desktop1 />
     </div>
   );
-}
-
-export default App;
+});

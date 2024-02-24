@@ -18,7 +18,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'django.contrib.sites',
     'corsheaders',
+    'clickhouse_backend',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -40,6 +42,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny'
     ]
 }
+
 
 
 TEMPLATES = [
@@ -104,7 +107,10 @@ STATIC_URL = '/static/'
 
 SITE_ID = 1
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 try:
     from .local_settings import *
 except ImportError:
     from .prod_settings import *
+
