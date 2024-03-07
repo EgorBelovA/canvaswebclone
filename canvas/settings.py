@@ -7,6 +7,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -63,6 +64,7 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'canvas.wsgi.application'
+ASGI_APPLICATION = "canvas.asgi.application"
 
 
 CHANNEL_LAYERS = {
