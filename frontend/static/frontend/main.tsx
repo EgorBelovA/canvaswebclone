@@ -37,7 +37,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var _styles_canvas_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./styles/canvas.css */ "./src/components/styles/canvas.css");
+/* harmony import */ var _scss_partials_canvas_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../scss/partials/_canvas.scss */ "./src/scss/partials/_canvas.scss");
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/jsx-runtime.js");
 
 
@@ -50,10 +50,10 @@ var Canvas = function Canvas() {
   var socketRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     var canvas = canvasRef.current;
-    var context = canvas.getContext('2d');
+    var context = canvas === null || canvas === void 0 ? void 0 : canvas.getContext('2d');
     var cursor = cursor_svg.current;
-    var w = canvas.width;
-    var h = canvas.height;
+    var w = canvas === null || canvas === void 0 ? void 0 : canvas.width;
+    var h = canvas === null || canvas === void 0 ? void 0 : canvas.height;
     var state = {
       xoffset: 0,
       yoffset: 0
@@ -68,14 +68,14 @@ var Canvas = function Canvas() {
       current.color = e.target.className.split(' ')[1];
     };
     var drawLine = function drawLine(x0, y0, x1, y1, color, send) {
-      context.beginPath();
-      context.moveTo(x0, y0);
-      context.lineTo(x1, y1);
+      context === null || context === void 0 || context.beginPath();
+      context === null || context === void 0 || context.moveTo(x0, y0);
+      context === null || context === void 0 || context.lineTo(x1, y1);
       context.strokeStyle = color;
       context.lineWidth = 2;
-      context.stroke();
-      context.closePath();
-      context.save();
+      context === null || context === void 0 || context.stroke();
+      context === null || context === void 0 || context.closePath();
+      context === null || context === void 0 || context.save();
       dataURL = canvasRef.current.toDataURL('image/png');
       if (!send) {
         return;
@@ -94,8 +94,7 @@ var Canvas = function Canvas() {
       current.y = e.clientY || e.touches[0].clientY;
     };
     var mouse_pos_send = function mouse_pos_send(x0, y0, x1, y1, color) {
-      console.log(socketRef.current);
-      if (socketRef.current.type == 'open') {
+      if (socketRef.current.readyState) {
         socketRef.current.send(JSON.stringify({
           x0: x0 / w,
           y0: y0 / h,
@@ -106,10 +105,7 @@ var Canvas = function Canvas() {
       }
     };
     var onMouseMove = function onMouseMove(e) {
-      document.querySelector('#cursor').style.left = "".concat(e.clientX, "px");
-      document.querySelector('#cursor').style.top = "".concat(e.clientY, "px");
-      mouse_pos_send(current.x, current.y, e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY, current.color);
-      console.log(drawing);
+      mouse_pos_send(current.x, current.y, e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY, null);
       if (!drawing) return;
       drawLine(current.x, current.y, e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY, current.color, true);
       current.x = e.clientX || e.touches[0].clientX;
@@ -152,16 +148,20 @@ var Canvas = function Canvas() {
     window.addEventListener('resize', onResize, false);
     onResize();
     var onDrawingEvent = function onDrawingEvent(data) {
-      //   if (data.color) {
-      drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color);
-      //   }
+      document.querySelector('#cursor').style.left = "".concat(data.x1 * w, "px");
+      document.querySelector('#cursor').style.top = "".concat(data.y1 * h, "px");
+      console.log(data.color);
+      if (data.color) {
+        console.log(123);
+        drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color);
+      }
     };
     socketRef.current = new WebSocket('ws://127.0.0.1:8000/');
     socketRef.current.onopen = function (e) {
       console.log('open', e);
     };
     socketRef.current.onmessage = function (e) {
-      console.log(e);
+      // console.log(e);
       onDrawingEvent(JSON.parse(e.data));
     };
     socketRef.current.onerror = function (e) {
@@ -208,10 +208,10 @@ var Canvas = function Canvas() {
 
 /***/ }),
 
-/***/ "./node_modules/css-loader/dist/cjs.js!./src/components/styles/canvas.css":
-/*!********************************************************************************!*\
-  !*** ./node_modules/css-loader/dist/cjs.js!./src/components/styles/canvas.css ***!
-  \********************************************************************************/
+/***/ "./node_modules/css-loader/dist/cjs.js!./src/scss/partials/_canvas.scss":
+/*!******************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./src/scss/partials/_canvas.scss ***!
+  \******************************************************************************/
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -227,7 +227,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "* {\n  box-sizing: border-box;\n}\n\n.canvas {\n  height: 100%;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n", "",{"version":3,"sources":["webpack://./src/components/styles/canvas.css"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;;AAEA;EACE,YAAY;EACZ,WAAW;EACX,kBAAkB;EAClB,OAAO;EACP,QAAQ;EACR,MAAM;EACN,SAAS;AACX;;AAEA;EACE,eAAe;AACjB;;AAEA;EACE,qBAAqB;EACrB,YAAY;EACZ,WAAW;AACb;;AAEA;EACE,uBAAuB;AACzB;AACA;EACE,qBAAqB;AACvB;AACA;EACE,uBAAuB;AACzB;AACA;EACE,sBAAsB;AACxB;AACA;EACE,wBAAwB;AAC1B","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n.canvas {\n  height: 100%;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "* {\n  box-sizing: border-box;\n}\n\n.canvas {\n  height: 100%/2;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n", "",{"version":3,"sources":["webpack://./src/scss/partials/_canvas.scss"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;;AAEA;EACE,cAAc;EACd,WAAW;EACX,kBAAkB;EAClB,OAAO;EACP,QAAQ;EACR,MAAM;EACN,SAAS;AACX;;AAEA;EACE,eAAe;AACjB;;AAEA;EACE,qBAAqB;EACrB,YAAY;EACZ,WAAW;AACb;;AAEA;EACE,uBAAuB;AACzB;AACA;EACE,qBAAqB;AACvB;AACA;EACE,uBAAuB;AACzB;AACA;EACE,sBAAsB;AACxB;AACA;EACE,wBAAwB;AAC1B","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n.canvas {\n  height: 100%/2;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -31411,10 +31411,10 @@ if (false) {} else {
 
 /***/ }),
 
-/***/ "./src/components/styles/canvas.css":
-/*!******************************************!*\
-  !*** ./src/components/styles/canvas.css ***!
-  \******************************************/
+/***/ "./src/scss/partials/_canvas.scss":
+/*!****************************************!*\
+  !*** ./src/scss/partials/_canvas.scss ***!
+  \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -31423,7 +31423,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _node_modules_css_loader_dist_cjs_js_canvas_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js!./canvas.css */ "./node_modules/css-loader/dist/cjs.js!./src/components/styles/canvas.css");
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_canvas_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js!./_canvas.scss */ "./node_modules/css-loader/dist/cjs.js!./src/scss/partials/_canvas.scss");
 
             
 
@@ -31432,11 +31432,11 @@ var options = {};
 options.insert = "head";
 options.singleton = false;
 
-var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_canvas_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_canvas_scss__WEBPACK_IMPORTED_MODULE_1__["default"], options);
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_canvas_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_canvas_scss__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
 
 /***/ }),
 

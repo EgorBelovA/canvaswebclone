@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import './styles/canvas.css';
+import '../scss/partials/_canvas.scss';
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -9,10 +9,10 @@ const Canvas = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+    const context = canvas?.getContext('2d');
     const cursor = cursor_svg.current;
-    const w = canvas.width;
-    const h = canvas.height;
+    const w = canvas?.width;
+    const h = canvas?.height;
 
     const state = { xoffset: 0, yoffset: 0 };
 
@@ -29,14 +29,14 @@ const Canvas = () => {
     };
 
     const drawLine = (x0, y0, x1, y1, color, send) => {
-      context.beginPath();
-      context.moveTo(x0, y0);
-      context.lineTo(x1, y1);
+      context?.beginPath();
+      context?.moveTo(x0, y0);
+      context?.lineTo(x1, y1);
       context.strokeStyle = color;
       context.lineWidth = 2;
-      context.stroke();
-      context.closePath();
-      context.save();
+      context?.stroke();
+      context?.closePath();
+      context?.save();
       dataURL = canvasRef.current.toDataURL('image/png');
 
       if (!send) {
@@ -61,8 +61,7 @@ const Canvas = () => {
     };
 
     const mouse_pos_send = (x0, y0, x1, y1, color) => {
-      console.log(socketRef.current);
-      if (socketRef.current.type == 'open') {
+      if (socketRef.current.readyState) {
         socketRef.current.send(
           JSON.stringify({
             x0: x0 / w,
@@ -75,17 +74,13 @@ const Canvas = () => {
       }
     };
     const onMouseMove = (e) => {
-      document.querySelector('#cursor').style.left = `${e.clientX}px`;
-      document.querySelector('#cursor').style.top = `${e.clientY}px`;
-
       mouse_pos_send(
         current.x,
         current.y,
         e.clientX || e.touches[0].clientX,
         e.clientY || e.touches[0].clientY,
-        current.color
+        null
       );
-      console.log(drawing);
 
       if (!drawing) return;
       drawLine(
@@ -151,9 +146,19 @@ const Canvas = () => {
     onResize();
 
     const onDrawingEvent = (data) => {
-      //   if (data.color) {
-      drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color);
-      //   }
+      document.querySelector('#cursor').style.left = `${data.x1 * w}px`;
+      document.querySelector('#cursor').style.top = `${data.y1 * h}px`;
+      console.log(data.color);
+      if (data.color) {
+        console.log(123);
+        drawLine(
+          data.x0 * w,
+          data.y0 * h,
+          data.x1 * w,
+          data.y1 * h,
+          data.color
+        );
+      }
     };
 
     socketRef.current = new WebSocket('ws://127.0.0.1:8000/');
@@ -163,7 +168,7 @@ const Canvas = () => {
     };
 
     socketRef.current.onmessage = (e) => {
-      console.log(e);
+      // console.log(e);
       onDrawingEvent(JSON.parse(e.data));
     };
 
