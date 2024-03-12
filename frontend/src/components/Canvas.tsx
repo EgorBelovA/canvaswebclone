@@ -1,22 +1,21 @@
 import React, { useRef, useEffect, useState } from 'react';
+import Cursor from './Cursor/Cursor';
 import '../scss/partials/_canvas.scss';
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const colorsRef = useRef<HTMLDivElement>(null);
-  const cursor_svg = useRef<HTMLElement>(null);
   const socketRef = useRef<Event>();
+  const cursor_svg = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
-    const cursor = cursor_svg.current;
     const w = canvas?.width;
     const h = canvas?.height;
 
     const state = { xoffset: 0, yoffset: 0 };
 
-    const colors = document.getElementsByClassName('color');
     const current = {
       color: 'black',
     };
@@ -24,17 +23,14 @@ const Canvas = () => {
     let dataURL = '';
     let drawing = false;
 
-    const onColorUpdate = (e) => {
-      current.color = e.target.className.split(' ')[1];
-    };
-
     const drawLine = (x0, y0, x1, y1, color, send) => {
       context?.beginPath();
       context?.moveTo(x0, y0);
       context?.lineTo(x1, y1);
       context.strokeStyle = color;
-      context.lineWidth = 2;
+      context.lineWidth = 10;
       context?.stroke();
+      context.lineCap = 'round';
       context?.closePath();
       context?.save();
       dataURL = canvasRef.current.toDataURL('image/png');
@@ -74,13 +70,15 @@ const Canvas = () => {
       }
     };
     const onMouseMove = (e) => {
-      mouse_pos_send(
-        current.x,
-        current.y,
-        e.clientX || e.touches[0].clientX,
-        e.clientY || e.touches[0].clientY,
-        null
-      );
+      // if (!drawing) {
+      //   mouse_pos_send(
+      //     current.x,
+      //     current.y,
+      //     e.clientX || e.touches[0].clientX,
+      //     e.clientY || e.touches[0].clientY,
+      //     null
+      //   );
+      // }
 
       if (!drawing) return;
       drawLine(
@@ -129,9 +127,13 @@ const Canvas = () => {
     canvas.addEventListener('touchcancel', onMouseUp, false);
     canvas.addEventListener('touchmove', throttle(onMouseMove, 10), false);
 
-    for (let i = 0; i < colors.length; ++i) {
-      colors[i].addEventListener('click', onColorUpdate, false);
-    }
+    const onColorUpdate = (e) => {
+      console.log(e.target.value);
+      current.color = e.target.value;
+    };
+
+    const color = colorsRef.current?.querySelector('#color');
+    color.addEventListener('change', onColorUpdate, false);
 
     const onResize = () => {
       canvas.width = window.innerWidth;
@@ -146,17 +148,17 @@ const Canvas = () => {
     onResize();
 
     const onDrawingEvent = (data) => {
-      document.querySelector('#cursor').style.left = `${data.x1 * w}px`;
-      document.querySelector('#cursor').style.top = `${data.y1 * h}px`;
-      console.log(data.color);
+      // Cursor.setState({ x0: `${data.x1 * w}px` });
+      // document.querySelector('#cursor').style.left = `${data.x1 * w}px`;
+      // document.querySelector('#cursor').style.top = `${data.y1 * h}px`;
       if (data.color) {
-        console.log(123);
         drawLine(
           data.x0 * w,
           data.y0 * h,
           data.x1 * w,
           data.y1 * h,
-          data.color
+          data.color,
+          false
         );
       }
     };
@@ -191,13 +193,8 @@ const Canvas = () => {
         </svg>
       </div>
       <canvas ref={canvasRef} className='canvas' />
-
       <div ref={colorsRef} className='colors'>
-        <div className='color black'></div>
-        <div className='color red'></div>
-        <div className='color green'></div>
-        <div className='color blue'></div>
-        <div className='color yellow'></div>
+        <input id='color' type='color' />
       </div>
     </div>
   );

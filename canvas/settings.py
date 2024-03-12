@@ -20,6 +20,12 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'corsheaders',
     'clickhouse_backend',
+
+    'social_django',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 
@@ -32,11 +38,48 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    # 'social_django.middleware.SocialAuthExceptionMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'canvas.urls'
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
+
+# INTERNAL_IPS = [
+#     "127.0.0.1",
+# ]
+
+LOGOUT_REDIRECT_URL = 'login'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'ADD': {
+            'cliend_id': '274441604369-unmngqo5nf779es24deogelre7e0gnvd.apps.googleusercontent.com',
+            'secret': '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',
+            'key': '',
+        },
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "274441604369-unmngqo5nf779es24deogelre7e0gnvd.apps.googleusercontent.com"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'social_core.backends.google.GoogleOAuth2',
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -64,7 +107,9 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'canvas.wsgi.application'
-ASGI_APPLICATION = "canvas.asgi.application"
+ASGI_APPLICATION = 'canvas.asgi.application'
+
+AUTH_USER_MODEL = 'frontend.CustomUser'
 
 
 CHANNEL_LAYERS = {
