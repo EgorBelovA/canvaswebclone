@@ -12,6 +12,11 @@ build
 frontend2
 node_modules
 
+dump.rdb
+.DS_Store
+venv
+
+
 
 
 *.py[cod]
