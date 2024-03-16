@@ -1,6 +1,9 @@
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from .serializers import *
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+
 
 class CanvasView(APIView):
     def get(self, request):
@@ -13,7 +16,7 @@ class CanvasView(APIView):
         ]
         return Response(output)
 
-    # @extend_schema(responses=CanvasSerializer)
+    @extend_schema(responses=CanvasSerializer)
     def post(self, request):
         serializer = CanvasSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):

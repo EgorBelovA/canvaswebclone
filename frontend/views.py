@@ -8,8 +8,12 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView
 from django.shortcuts import render, redirect, reverse
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 
+
+@login_required(login_url='login')
 def index(request):
     return render(request, 'frontend/index.html')
 
@@ -45,3 +49,10 @@ class LoginUser(DataMixin, LoginView):
 def logout_user(request):
     logout(request)
     return redirect('login')
+
+
+def pageError(request, exception):
+    return redirect("index")
+
+def pageError500(request):
+    return redirect("index")

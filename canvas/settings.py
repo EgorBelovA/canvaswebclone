@@ -20,6 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'corsheaders',
     'clickhouse_backend',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 
     'social_django',
     'allauth',
@@ -38,7 +40,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    # 'social_django.middleware.SocialAuthExceptionMiddleware',
     "allauth.account.middleware.AccountMiddleware",
 ]
 
@@ -47,10 +48,6 @@ ROOT_URLCONF = 'canvas.urls'
 CORS_ORIGIN_ALLOW_ALL = True
 
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
-
-# INTERNAL_IPS = [
-#     "127.0.0.1",
-# ]
 
 LOGOUT_REDIRECT_URL = 'login'
 
@@ -84,10 +81,19 @@ AUTHENTICATION_BACKENDS = [
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny'
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema', 
 }
 
-
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Canvas API',
+    'DESCRIPTION': 'Canvas docs',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+}
 
 TEMPLATES = [
     {

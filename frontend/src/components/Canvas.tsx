@@ -138,10 +138,10 @@ const Canvas = () => {
     const onResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      let img = document.createElement('img');
-      img.src = dataURL;
-      context.drawImage(img, 0, 0);
-      context.restore();
+      // let img = document.createElement('img');
+      // img.src = dataURL;
+      // context.drawImage(img, 0, 0);
+      // context.restore();
     };
 
     window.addEventListener('resize', onResize, false);

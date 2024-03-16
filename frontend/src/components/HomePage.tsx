@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Canvas from './Canvas';
+import Home from './Home';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 export default class HomePage extends Component {
@@ -11,8 +12,8 @@ export default class HomePage extends Component {
     return (
       <Router>
         <Routes>
-          <Route path='/' element={<>Hello</>}></Route>
-          <Route path='canvas' element={<Canvas></Canvas>} />
+          <Route path='/' element={<Home />}></Route>
+          <Route path='canvas' element={<Canvas />} />
         </Routes>
       </Router>
     );
