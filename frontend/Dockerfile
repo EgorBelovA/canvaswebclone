@@ -4,3 +4,4 @@ ADD *.json ./
 RUN npm install
 ADD ./public ./public
 ADD ./src ./src
+ADD ./webpack ./webpack
