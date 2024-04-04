@@ -4474,7 +4474,10 @@ var Canvas = function Canvas() {
       context.lineCap = 'round';
       context === null || context === void 0 || context.closePath();
       context === null || context === void 0 || context.save();
-      dataURL = canvasRef.current.toDataURL('image/png');
+      // var canvasSVGContext = new canvas.Deferred();
+      // canvasSVGContext.wrapCanvas(document.querySelector('canvas'));
+      // console.log(canvasSVGContext.getSVG());
+      dataURL = canvasRef.current.toDataURL('image/webp', 1);
       if (!send) {
         return;
       }
@@ -4550,10 +4553,10 @@ var Canvas = function Canvas() {
     var onResize = function onResize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // let img = document.createElement('img');
-      // img.src = dataURL;
-      // context.drawImage(img, 0, 0);
-      // context.restore();
+      var img = document.createElement('img');
+      img.src = dataURL;
+      context.drawImage(img, 0, 0);
+      context.restore();
     };
     window.addEventListener('resize', onResize, false);
     onResize();
@@ -4565,7 +4568,7 @@ var Canvas = function Canvas() {
         drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color, false);
       }
     };
-    socketRef.current = new WebSocket('ws://127.0.0.1:8000/');
+    socketRef.current = new WebSocket('ws://127.0.0.1:8000');
     socketRef.current.onopen = function (e) {
       console.log('open', e);
     };
@@ -4751,7 +4754,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_pnpm_css_loader_5_2_7_webpack_5_90_3_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_pnpm_css_loader_5_2_7_webpack_5_90_3_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".canvas {\n  height: 100%/2;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n", "",{"version":3,"sources":["webpack://./src/scss/partials/_canvas.scss"],"names":[],"mappings":"AAAA;EACE,cAAc;EACd,WAAW;EACX,kBAAkB;EAClB,OAAO;EACP,QAAQ;EACR,MAAM;EACN,SAAS;AACX;;AAEA;EACE,eAAe;AACjB;;AAEA;EACE,qBAAqB;EACrB,YAAY;EACZ,WAAW;AACb;;AAEA;EACE,uBAAuB;AACzB;AACA;EACE,qBAAqB;AACvB;AACA;EACE,uBAAuB;AACzB;AACA;EACE,sBAAsB;AACxB;AACA;EACE,wBAAwB;AAC1B","sourcesContent":[".canvas {\n  height: 100%/2;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "body {\n  overflow: hidden;\n}\n\n.canvas {\n  height: 100%/2;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n", "",{"version":3,"sources":["webpack://./src/scss/partials/_canvas.scss"],"names":[],"mappings":"AAAA;EACE,gBAAgB;AAClB;;AAEA;EACE,cAAc;EACd,WAAW;EACX,kBAAkB;EAClB,OAAO;EACP,QAAQ;EACR,MAAM;EACN,SAAS;AACX;;AAEA;EACE,eAAe;AACjB;;AAEA;EACE,qBAAqB;EACrB,YAAY;EACZ,WAAW;AACb;;AAEA;EACE,uBAAuB;AACzB;AACA;EACE,qBAAqB;AACvB;AACA;EACE,uBAAuB;AACzB;AACA;EACE,sBAAsB;AACxB;AACA;EACE,wBAAwB;AAC1B","sourcesContent":["body {\n  overflow: hidden;\n}\n\n.canvas {\n  height: 100%/2;\n  width: 100%;\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0;\n}\n\n.colors {\n  position: fixed;\n}\n\n.color {\n  display: inline-block;\n  height: 48px;\n  width: 48px;\n}\n\n.color.black {\n  background-color: black;\n}\n.color.red {\n  background-color: red;\n}\n.color.green {\n  background-color: green;\n}\n.color.blue {\n  background-color: blue;\n}\n.color.yellow {\n  background-color: yellow;\n}\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

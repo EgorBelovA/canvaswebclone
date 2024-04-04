@@ -1,4 +1,5 @@
+# command = 'home/ubuntu/django'
 bind = '127.0.0.1:8000'
-workers = 2
+workers = 3
 user = 'ADMIN'
 timeout = 120

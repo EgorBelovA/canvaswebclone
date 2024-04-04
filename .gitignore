@@ -11,6 +11,7 @@ media
 build
 frontend2
 node_modules
+static
 
 dump.rdb
 .DS_Store

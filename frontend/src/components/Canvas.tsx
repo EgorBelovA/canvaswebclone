@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Cursor from './Cursor/Cursor';
+import DisableZoom from './DisableZoom';
 import '../scss/partials/_canvas.scss';
 
 const Canvas = () => {
@@ -33,7 +34,10 @@ const Canvas = () => {
       context.lineCap = 'round';
       context?.closePath();
       context?.save();
-      dataURL = canvasRef.current.toDataURL('image/png');
+      // var canvasSVGContext = new canvas.Deferred();
+      // canvasSVGContext.wrapCanvas(document.querySelector('canvas'));
+      // console.log(canvasSVGContext.getSVG());
+      dataURL = canvasRef.current.toDataURL('image/webp', 1);
 
       if (!send) {
         return;
@@ -138,10 +142,10 @@ const Canvas = () => {
     const onResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // let img = document.createElement('img');
-      // img.src = dataURL;
-      // context.drawImage(img, 0, 0);
-      // context.restore();
+      let img = document.createElement('img');
+      img.src = dataURL;
+      context.drawImage(img, 0, 0);
+      context.restore();
     };
 
     window.addEventListener('resize', onResize, false);
@@ -163,7 +167,7 @@ const Canvas = () => {
       }
     };
 
-    socketRef.current = new WebSocket('ws://127.0.0.1:8000/');
+    socketRef.current = new WebSocket('ws://127.0.0.1:8000');
 
     socketRef.current.onopen = (e) => {
       console.log('open', e);
@@ -181,6 +185,7 @@ const Canvas = () => {
 
   return (
     <div>
+      {/* <DisableZoom /> */}
       <div id='cursor' style={{ position: 'absolute' }}>
         <svg
           xmlns='http://www.w3.org/2000/svg'

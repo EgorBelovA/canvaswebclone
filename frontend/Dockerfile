@@ -1,7 +1,10 @@
-FROM node:20.11-alpine as build
-WORKDIR /usr/src/app
-ADD *.json ./
+FROM node:20.11
+
+WORKDIR /app
+COPY package*.json ./
+
 RUN npm install
-ADD ./public ./public
-ADD ./src ./src
-ADD ./webpack ./webpack
+COPY . .
+# ADD ./public ./public
+# ADD ./src ./src
+# ADD ./webpack ./webpack

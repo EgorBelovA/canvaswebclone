@@ -156,7 +156,8 @@ USE_TZ = True
 
 LOGIN_REDIRECT_URL = 'canvas'
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, STATIC_URL)
 
 SITE_ID = 1
 

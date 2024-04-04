@@ -1,19 +1,12 @@
-FROM python:3.12.2-alpine
+FROM python:3.12.2-slim
 
+WORKDIR /app
 
-WORKDIR /usr/src/app
-RUN mkdir -p $WORKDIR/static
-RUN mkdir -p $WORKDIR/media
-
-
-ENV PYTHONDONTWRITEBYTECODE 1
-
-ENV PYTHONUNBUFFERED 1
-
-RUN pip install --upgrade pip
-
-
-COPY ./requirements.txt .
+COPY . /app/
+RUN apt-get update && apt-get install -y curl && apt-get clean
 RUN pip install -r requirements.txt
 
-COPY . .
+CMD python manage.py migrate \
+    # && python manage.py runserver 0.0.0.0:8000 \
+    && python manage.py collectstatic --no-input \
+    && gunicorn canvas.wsgi:application --bind 0.0.0.0:8000 --log-level info
