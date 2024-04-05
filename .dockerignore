@@ -1,2 +1,8 @@
 .env
-celerybeat-schedule
+venv
+.docker-compose
+Dockerfile
+LICENCE
+README.md
+conf
+static
