@@ -156,15 +156,44 @@ USE_TZ = True
 
 LOGIN_REDIRECT_URL = 'canvas'
 
+
+
+SECRET_KEY = '!13t9(!iar0(xx=pa-_dnk$di&#^!wqfx5tur88qgiu_q3h6as'
+
+DEBUG = True
+
+
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, STATIC_URL)
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+STATICFILES = [STATIC_DIR]
 
 SITE_ID = 1
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-try:
-    from .local_settings import *
-except ImportError:
-    from .prod_settings import *
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    },
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'canvas',
+    #     'USER': 'canvas',
+    #     'PASSWORD': 'canvas',
+    #     'HOST': 'localhost',
+    #     'PORT': '5432',
+    # },
+    # "default": {
+    #     "ENGINE": "clickhouse_backend.backend",
+    #     "NAME": "default",
+    #     "HOST": "localhost",
+    #     "USER": "default",
+    #     "PASSWORD": "admin",
+    #     "PORT": "8123"
+    # }
+}
+
+# DATABASE_ROUTERS = ["dbrouters.ClickHouseRouter"]
