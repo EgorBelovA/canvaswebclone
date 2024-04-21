@@ -6,3 +6,8 @@ LICENCE
 README.md
 conf
 static
+canvas_app2
+*/migrations
+db.sqlite3
+*/__pycache__
+conf

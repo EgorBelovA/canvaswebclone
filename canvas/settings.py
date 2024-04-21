@@ -1,7 +1,12 @@
 import os.path
 from pathlib import Path
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -14,12 +19,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'frontend',
-    'canvas_app',
     'rest_framework',
     'django.contrib.sites',
     'corsheaders',
-    'clickhouse_backend',
     'drf_spectacular',
     'drf_spectacular_sidecar',
 
@@ -28,6 +30,11 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'django_email_verification',
+
+    'api.apps.ApiConfig',
+    # 'canvas_app.apps.CanvasAppConfig',
+    'account_app.apps.AccountAppConfig',
 ]
 
 
@@ -47,6 +54,10 @@ ROOT_URLCONF = 'canvas.urls'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",
+# ]
+
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 LOGOUT_REDIRECT_URL = 'login'
@@ -58,8 +69,8 @@ SOCIALACCOUNT_PROVIDERS = {
             'email',
         ],
         'ADD': {
-            'cliend_id': '274441604369-unmngqo5nf779es24deogelre7e0gnvd.apps.googleusercontent.com',
-            'secret': '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',
+            'cliend_id': os.environ.get('SOCIALACCOUNT_PROVIDERS_CLIENT_ID'),
+            'secret': os.environ.get('SOCIALACCOUNT_PROVIDERS_SECRET'),
             'key': '',
         },
         'AUTH_PARAMS': {
@@ -68,11 +79,12 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "274441604369-unmngqo5nf779es24deogelre7e0gnvd.apps.googleusercontent.com"
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 
 AUTHENTICATION_BACKENDS = [
+    'account_app.backends.GoogleAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
     'social_core.backends.google.GoogleOAuth2',
@@ -80,10 +92,27 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny'
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication', 
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema', 
 }
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+SIMPLE_JWT = {
+     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+     'REFRESH_TOKEN_LIFETIME': timedelta(minutes=1),
+     'ROTATE_REFRESH_TOKENS': True,
+     'BLACKLIST_AFTER_ROTATION': True
+}
+
+# BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL', default='http://localhost:8001')
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Canvas API',
@@ -98,7 +127,10 @@ SPECTACULAR_SETTINGS = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            # BASE_DIR / 'account_app' / 'templates',
+            BASE_DIR.joinpath('canvas_app'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -115,14 +147,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'canvas.wsgi.application'
 ASGI_APPLICATION = 'canvas.asgi.application'
 
-AUTH_USER_MODEL = 'frontend.CustomUser'
+AUTH_USER_MODEL = 'account_app.CustomUser'
 
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('redis', 6379)]
+            'hosts': [('127.0.0.1', 6379)]
         },
     },
 }
@@ -154,23 +186,27 @@ USE_L10N = True
 
 USE_TZ = True
 
-LOGIN_REDIRECT_URL = 'canvas'
-
-
-
-SECRET_KEY = '!13t9(!iar0(xx=pa-_dnk$di&#^!wqfx5tur88qgiu_q3h6as'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEBUG = True
+
+# SESSION_COOKIE_HTTPONLY = False
 
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, STATIC_URL)
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATICFILES = [STATIC_DIR]
+STATICFILES_DIRS = (
+    BASE_DIR.joinpath('canvas_app', 'dist'),
+    BASE_DIR.joinpath('api'),
+)
 
 SITE_ID = 1
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+ALLOWED_HOSTS = ["*"]
 
 
 DATABASES = {
@@ -180,20 +216,54 @@ DATABASES = {
     },
     # 'default': {
     #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': 'canvas',
-    #     'USER': 'canvas',
-    #     'PASSWORD': 'canvas',
+    #     'NAME': 'canvas_db',
+    #     'USER': 'canvas_db',
+    #     'PASSWORD': 'canvas_db',
     #     'HOST': 'localhost',
-    #     'PORT': '5432',
+    #     'PORT': '5430',
     # },
-    # "default": {
-    #     "ENGINE": "clickhouse_backend.backend",
-    #     "NAME": "default",
-    #     "HOST": "localhost",
-    #     "USER": "default",
-    #     "PASSWORD": "admin",
-    #     "PORT": "8123"
-    # }
 }
 
-# DATABASE_ROUTERS = ["dbrouters.ClickHouseRouter"]
+
+def email_verified_callback(user):
+    user.is_active = True
+
+
+# def password_change_callback(user, password):
+#     user.set_password(password)
+
+
+# Global Package Settings
+EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS')
+EMAIL_PAGE_DOMAIN = 'http://127.0.0.1:8001/'  # mandatory (unless you use a custom link)
+EMAIL_MULTI_USER = False  # optional (defaults to False)
+
+# Email Verification Settings (mandatory for email sending)
+EMAIL_MAIL_SUBJECT = 'Confirm your email {{ user.name }}'
+EMAIL_MAIL_HTML = 'email/mail_body.html'
+EMAIL_MAIL_PLAIN = 'email/mail_body.txt'
+EMAIL_MAIL_TOKEN_LIFE = 60 * 60  # 1 hour
+
+# Email Verification Settings (mandatory for builtin view)
+EMAIL_MAIL_PAGE_TEMPLATE = 'email/email_success_template.html'
+EMAIL_MAIL_CALLBACK = email_verified_callback
+
+# Password Recovery Settings (mandatory for email sending)
+# EMAIL_PASSWORD_SUBJECT = 'Change your password {{ user.username }}'
+# EMAIL_PASSWORD_HTML = 'password_body.html'
+# EMAIL_PASSWORD_PLAIN = 'password_body.txt'
+# EMAIL_PASSWORD_TOKEN_LIFE = 60 * 10  # 10 minutes
+
+# Password Recovery Settings (mandatory for builtin view)
+# EMAIL_PASSWORD_PAGE_TEMPLATE = 'password_changed_template.html'
+# EMAIL_PASSWORD_CHANGE_PAGE_TEMPLATE = 'password_change_template.html'
+# EMAIL_PASSWORD_CALLBACK = password_change_callback
+
+
+# For Django Email Backend
+EMAIL_BACKEND = 'canvas.email_backend.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True

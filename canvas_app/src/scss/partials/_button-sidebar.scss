@@ -1,0 +1,32 @@
+#button-sidebar {
+  padding: 8px 16px;
+  background-color: #edacffd2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+#button-sidebar:hover {
+  background-color: #b679ef;
+  #object {
+    background-color: blue;
+  }
+}
+#object * {
+  fill: #000;
+}
+
+#object {
+  //   background-color: red;
+  color: #000;
+  margin-right: 4px;
+  width: 24px;
+  height: 24px;
+  fill: #000;
+}
+
+#object:hover {
+  fill: #b679ef;
+}

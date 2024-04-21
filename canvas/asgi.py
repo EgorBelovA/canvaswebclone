@@ -5,14 +5,16 @@ from django.core.asgi import get_asgi_application
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
-from canvas_app.consumer import CanvasConsumer
-from django.urls import path
+from api.consumer import CanvasConsumer
+from django.urls import path, re_path
 
 import django
-django.setup()
 from canvas import routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'canvas.settings')
+
+django.setup()
+
 
 django_asgi_app = get_asgi_application()
 
@@ -20,7 +22,7 @@ application = ProtocolTypeRouter({
     'http': django_asgi_app,
     'websocket': AllowedHostsOriginValidator(
         URLRouter([
-            path('', CanvasConsumer.as_asgi())
+            re_path(r'(?P<slug>\S+)/$', CanvasConsumer.as_asgi())
         ])
     )
 })

@@ -1,8 +1,8 @@
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
-from django.urls import path
-from canvas_app.consumer import CanvasConsumer
+from django.urls import path, re_path
+from api.consumer import CanvasConsumer
 
 websocket_urlpatterns = [
-    path('ws/', CanvasConsumer.as_asgi())
+    re_path(r'socket-server/(?P<slug>[\w-]+)/$', CanvasConsumer.as_asgi())
 ]

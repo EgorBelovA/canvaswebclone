@@ -1,0 +1,3 @@
+{{user.email}}
+{{link}}
+Token expires on {{ expiry|time:"TIME_FORMAT"}}
