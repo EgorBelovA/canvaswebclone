@@ -149,6 +149,8 @@ ASGI_APPLICATION = 'canvas.asgi.application'
 
 AUTH_USER_MODEL = 'account_app.CustomUser'
 
+CSRF_TRUSTED_ORIGINS = [os.environ.get("CSRF_TRUSTED_ORIGINS")]
+
 
 CHANNEL_LAYERS = {
     'default': {

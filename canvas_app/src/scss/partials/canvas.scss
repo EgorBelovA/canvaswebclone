@@ -1,0 +1,60 @@
+// body,
+// html {
+//   height: 100%;
+//   overflow: hidden;
+//   margin: 0;
+// }
+body,
+html {
+  background-color: #fff;
+}
+
+#canvas {
+  // width: 100%;
+  // height: 100%;
+  // height: 100vh;
+  background-color: #f0f0f0 !important;
+  cursor: url('/pen_cursor.svg') 4 20, auto;
+}
+
+.color-picker {
+  position: absolute;
+  bottom: 100px;
+  left: 20px;
+  z-index: 10;
+}
+
+#color {
+  width: 20px;
+  outline: none;
+  color: #fff;
+  caret-color: #fff;
+  font-size: 16px !important;
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+}
+
+// input * {
+//   background-color: red !important;
+// }
+
+#stroke-width {
+  width: 100px;
+  height: 20px;
+  position: absolute;
+  background-color: #6d5252;
+  top: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.circular-cursor {
+  background-color: transparent;
+  border: 0.3px solid #999999;
+  border-radius: 50%;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 100;
+  pointer-events: none;
+}

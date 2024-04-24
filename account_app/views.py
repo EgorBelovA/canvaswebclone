@@ -67,10 +67,8 @@ class UserView(APIView):
     def get(self, request): 
         try:
             serializer = UserSerializer(request.user)
-            print(123)
             return Response({'user': serializer.data}, status=status.HTTP_200_OK)
         except:
-            print(123)
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 

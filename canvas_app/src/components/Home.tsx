@@ -17,10 +17,9 @@ const HomePage: React.FC = () => {
         loop
         muted
       />
+      <BackgroundButterflies />
 
       <div className='index-main'>
-        <BackgroundButterflies />
-
         <Navbar />
         <a href='/dashboard/' id='main-quote'>
           The outside world is a reflection of the inside one

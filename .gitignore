@@ -11,7 +11,8 @@ canvas_app/node_modules
 Dockerfile
 docker-compose.yml
 canvas_app/Dockerfile
-conf/nginx.conf
+conf
 db.sqlite3
 .env
 */.env
+certbot

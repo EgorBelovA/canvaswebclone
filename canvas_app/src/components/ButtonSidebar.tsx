@@ -9,7 +9,12 @@ function ButtonSidebar(props: any) {
 
   return (
     <div className='button-sidebar'>
-      <object type='image/svg+xml' data={props.icon} width='24px' id='object' />
+      <object
+        type='image/svg+xml'
+        data={`/static/${props.icon}`}
+        width='24px'
+        id='object'
+      />
     </div>
   );
 }

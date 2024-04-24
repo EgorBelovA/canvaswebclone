@@ -252,14 +252,15 @@
 
 // export default Canvas;
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import rough from 'roughjs';
 import getStroke from 'perfect-freehand';
 // import DisableZoom from './DisableZoom';
-import '../scss/partials/_canvas.scss';
+import '../scss/partials/canvas.scss';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import { useCookies } from 'react-cookie';
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
 axios.defaults.xsrfCookieName = 'csrftoken';
@@ -277,7 +278,9 @@ const createElement = (
   y1: any,
   x2: any,
   y2: any,
-  type: any
+  type: any,
+  strokeSize: any,
+  color: any
 ) => {
   switch (type) {
     case 'line':
@@ -288,7 +291,7 @@ const createElement = (
           : generator.rectangle(x1, y1, x2 - x1, y2 - y1, { roughness: 0 });
       return { id, x1, y1, x2, y2, type, roughElement };
     case 'pencil':
-      return { id, type, points: [{ x: x1, y: y1 }] };
+      return { id, type, points: [{ x: x1, y: y1 }], strokeSize, color };
     case 'text':
       return { id, type, x1, y1, x2, y2, text: '' };
     default:
@@ -463,8 +466,10 @@ const drawElement = (roughCanvas: any, context: any, element: any) => {
       break;
     case 'pencil':
       // console.log(element.points);
-      const stroke = getSvgPathFromStroke(getStroke(element.points));
-      context.fillStyle = 'red';
+      const stroke = getSvgPathFromStroke(
+        getStroke(element.points, { size: element.strokeSize })
+      );
+      context.fillStyle = element.color;
       context.fill(new Path2D(stroke));
 
       break;
@@ -512,36 +517,126 @@ const Canvas = () => {
   const [action, setAction] = useState('none');
   const [tool, setTool] = useState('rectangle');
   const [selectedElement, setSelectedElement] = useState(null) as any;
-  const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
-  const [startPanMousePosition, setStartPanMousePosition] = React.useState({
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [startPanMousePosition, setStartPanMousePosition] = useState({
     x: 0,
     y: 0,
   });
-  const [scale, setScale] = React.useState(1);
-  const [scaleOffset, setScaleOffset] = React.useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(1);
+  const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const pressedKeys = usePressedKeys();
   const colorsRef = useRef<HTMLDivElement>(null);
 
-  const navigate = useNavigate();
+  const [strokeSize, setStrokeSize] = useState(15);
+  const [strokeColor, setStrokeColor] = useState('#000000');
+
+  const [cookies, setCookie] = useCookies([
+    'strokeColor',
+    'strokeSize',
+    'tool',
+    'panOffset',
+    'scale',
+  ]);
+
+  useEffect(() => {
+    if (cookies.strokeSize) setStrokeSize(cookies.strokeSize);
+    if (cookies.strokeColor) setStrokeColor(cookies.strokeColor);
+    if (cookies.tool) setTool(cookies.tool);
+    console.log(window.innerHeight, window.innerWidth);
+    if (cookies.panOffset) setPanOffset(cookies.panOffset);
+    if (cookies.scale) setScale(cookies.scale);
+  }, []);
+
+  const onColorUpdate = (e: any) => {
+    setStrokeColor(e.target.value);
+    setCookie('strokeColor', e.target.value);
+  };
+
+  const handleToolChange = (tool: any) => {
+    setTool(tool);
+    setCookie('tool', tool);
+  };
+
+  var wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+
+  const color = colorsRef.current?.querySelector('#color');
+  color?.addEventListener('change', onColorUpdate, false);
+
+  // const navigate = useNavigate();
   const slug = window.location.pathname.split('/')[2];
 
   const socketRef = useRef<WebSocket | null>(null);
 
+  // useEffect(() => {
+  //   window.addEventListener('close', () => {
+  //     console.log(123);
+  //   });
+  // }, []);
+
+  // const EmptyCanvas = () => {
+  //   client.post();
+  // };
+
+  useEffect(() => {
+    let cursor = document.querySelector('.circular-cursor');
+
+    const onMouseMove = (e: MouseEvent) => {
+      cursor?.setAttribute(
+        'style',
+        `left: ${e.pageX - 10}px; top: ${e.pageY - 10}px; width: ${
+          25 * scale
+        }px; height: ${25 * scale}px;`
+      );
+    };
+
+    onMouseMove(new MouseEvent('mousemove'));
+
+    window.addEventListener('mousemove', onMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, [scale]);
+
+  const [data, setData] = useState({});
   useEffect(() => {
     client
       .get(`/api/canvas/${slug}/`)
-      .then((e) => {
-        console.log(e.data);
+      .then(async (e) => {
+        setData(e.data.elements);
+        // Init(e.data.elements);
+        // const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+        // const context = canvas?.getContext('2d');
       })
       .catch((e) => {
         console.log(e);
-        navigate('/dashboard/');
+        // navigate('/dashboard/');
       });
   }, []);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    const data2 = new Map(Object.entries(data));
+    for (let elem of data2) {
+      let e = elem[1] as any;
+      elements.push(e.element);
+    }
+    setElements((prevState: any) => [...prevState]);
+  }, [data]);
+
+  useEffect(() => {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    const ratio = window.devicePixelRatio;
+    canvas.width = window.innerWidth * ratio;
+    canvas.height = window.innerHeight * ratio;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    canvas?.getContext('2d')?.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    // canvas.replaceWith(myCanvas);
+    // canvas.width = window.innerWidth;
+    // canvas.height = window.innerHeight;
+    // const canvas = myCanvas;
     const context = canvas?.getContext('2d');
     const roughCanvas = rough.canvas(canvas!);
 
@@ -585,30 +680,34 @@ const Canvas = () => {
     };
   }, [undo, redo]);
 
-  // function detectTrackPad(e: any) {
-  //   console.log(e);
-  // }
-  // useEffect(() => {
-  //   document.addEventListener('mousewheel', detectTrackPad, false);
-  //   document.addEventListener('DOMMouseScroll', detectTrackPad, false);
-  //   document.addEventListener('resize', detectTrackPad, false);
+  const handleWheel = (event: any) => {
+    event.preventDefault();
+    // console.log(event);
+    // const smoothFactor = 0.01; // Adjust this value to control the smoothness
+    setPanOffset((prev) => ({
+      x: prev.x,
+      y: 0,
+    }));
+  };
 
-  //   return () => {
-  //     document.removeEventListener('mousewheel', detectTrackPad, false);
-  //     document.removeEventListener('DOMMouseScroll', detectTrackPad, false);
-  //     document.removeEventListener('resize', detectTrackPad, false);
-  //   };
-  // }, []);
+  useEffect(() => {
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   useEffect(() => {
     const panOrZoomFunction = (event: any) => {
       if (pressedKeys.has('Meta') || pressedKeys.has('Control'))
         onZoom(event.deltaY * -0.01);
-      else
+      else {
         setPanOffset((prev) => ({
           x: prev.x - event.deltaX,
           y: prev.y - event.deltaY,
         }));
+      }
     };
 
     document.addEventListener('wheel', panOrZoomFunction);
@@ -620,17 +719,18 @@ const Canvas = () => {
   const panOrZoomFunction = (event: any) => {
     if (pressedKeys.has('Meta') || pressedKeys.has('Control'))
       onZoom(event.deltaY * -0.01);
-    else
+    else {
       setPanOffset((prev) => ({
         x: prev.x - event.deltaX,
         y: prev.y - event.deltaY,
       }));
+    }
   };
 
   document.addEventListener('wheel', panOrZoomFunction, { passive: false });
 
   useEffect(() => {
-    const websocket_url = `ws://${location.host}/${slug}/`;
+    const websocket_url = `${wsProtocol}://${location.host}/${slug}/`;
     socketRef.current = new WebSocket(websocket_url);
 
     socketRef.current.onopen = (e: any) => {
@@ -639,58 +739,15 @@ const Canvas = () => {
 
     socketRef.current.onmessage = (e: any) => {
       let data = JSON.parse(e.data);
-      console.log(data.element);
-      // const id = elements.length;
-      // const element = createElement(
-      //   id,
-      //   data.x0,
-      //   data.y0,
-      //   data.x1,
-      //   data.y1,
-      //   'pencil'
-      // );
-      // console.log(element);
-      // setElements((prevState: any) => [...prevState, element]);
-      // setSelectedElement(element);
-
-      // setAction(tool === 'text' ? 'writing' : 'drawing');
-
+      elements.push(data.element);
       const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-      const roughCanvas = rough.canvas(canvas!);
       const context = canvas?.getContext('2d');
-
-      // const id = elements.length;
-      // const element = createElement(
-      //   id,
-      //   data.element.x0,
-      //   data.element.y0,
-      //   data.element.x1,
-      //   data.element.y1,
-      //   tool
-      // );
-      // setElements((prevState: any) => [...prevState, element]);
-      // setSelectedElement(element);
-      // const id = elements.length;
-      // console.log(
-      //   data.element.type,
-      //   data.element.x0,
-
-      //   data.element
-      // );
-      // updateElement(
-      //   id,
-      //   data.element.x1,
-      //   data.element.y1,
-      //   data.element.x2,
-      //   data.element.y2,
-      //   data.element.type,
-      //   null
-      // );
-      // elements.type = 'pencil';
-      // data.type = 'pencil';
-      // elements.points = [{ x: 0, y: 0 }];
+      const roughCanvas = rough.canvas(canvas!);
       drawElement(roughCanvas, context, data.element);
-      // handleMouseMove(JSON.parse(e.data));
+      // setElements((prevState: any) => [...prevState]);
+      // console.log(data.element);
+      // console.log(elements);
+      // setElements(data.element);
     };
 
     socketRef.current!.onerror = (e: any) => {
@@ -724,7 +781,16 @@ const Canvas = () => {
     switch (type) {
       case 'line':
       case 'rectangle':
-        elementsCopy[id] = createElement(id, x1, y1, x2, y2, type);
+        elementsCopy[id] = createElement(
+          id,
+          x1,
+          y1,
+          x2,
+          y2,
+          type,
+          strokeSize,
+          strokeColor
+        );
         break;
       case 'pencil':
         elementsCopy[id].points = [
@@ -748,7 +814,9 @@ const Canvas = () => {
                 y1,
                 x1 + textWidth,
                 y1 + textHeight,
-                type
+                type,
+                strokeSize,
+                strokeColor
               ),
               text: options.text,
             };
@@ -767,6 +835,11 @@ const Canvas = () => {
     const clientY =
       (event.clientY - panOffset.y * scale + scaleOffset.y) / scale;
     return { clientX, clientY };
+  };
+
+  const handleStrokeChange = (event: any) => {
+    setStrokeSize(parseInt(event.target.value));
+    setCookie('strokeSize', event.target.value);
   };
 
   const handleMouseDown = (event: any) => {
@@ -812,7 +885,9 @@ const Canvas = () => {
         clientY,
         clientX,
         clientY,
-        tool
+        tool,
+        strokeSize,
+        strokeColor
       );
       setElements((prevState: any) => [...prevState, element]);
       setSelectedElement(element);
@@ -825,13 +900,13 @@ const Canvas = () => {
     const { clientX, clientY } = getMouseCoordinates(event);
 
     if (action === 'panning') {
+      // console.log(event);
       const deltaX = clientX - startPanMousePosition.x;
       const deltaY = clientY - startPanMousePosition.y;
       setPanOffset({
         x: panOffset.x + deltaX,
         y: panOffset.y + deltaY,
       });
-
       return;
     }
 
@@ -914,6 +989,9 @@ const Canvas = () => {
         // }
       }
 
+      client.post(`/api/canvas/${slug}/`, {
+        element: elements[index],
+      });
       socketRef?.current?.send(
         JSON.stringify({
           element: elements[index],
@@ -926,6 +1004,8 @@ const Canvas = () => {
 
     setAction('none');
     setSelectedElement(null);
+
+    setCookie('panOffset', { x: panOffset.x, y: panOffset.y });
   };
 
   const handleBlur = (event: any) => {
@@ -936,31 +1016,20 @@ const Canvas = () => {
   };
 
   const onZoom = (increment: any) => {
-    setScale((prevState) => Math.min(Math.max(prevState + increment, 0.1), 20));
+    setScale((prevState) => Math.min(Math.max(prevState + increment, 0.1), 5));
+    setCookie('scale', scale + 0.1);
   };
-
-  // const onDrawingEvent = (data: any) => {
-  //   if (data.color) {
-  //     drawLine(
-  //       data.x0 * w,
-  //       data.y0 * h,
-  //       data.x1 * w,
-  //       data.y1 * h,
-  //       data.color,
-  //       false
-  //     );
-  //   }
-  // };
 
   return (
     <div>
-      {/* <meta
+      <meta
         name='viewport'
-        content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi'
-      /> */}
+        content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height'
+      />
 
       {/* <DisableZoom /> */}
       <Sidebar />
+      <div className='circular-cursor'></div>
       <div
         style={{
           position: 'fixed',
@@ -971,41 +1040,46 @@ const Canvas = () => {
           type='radio'
           id='selection'
           checked={tool === 'selection'}
-          onChange={() => setTool('selection')}
+          onChange={() => handleToolChange('selection')}
         />
-        <label htmlFor='selection'>Selection</label>
+        <label htmlFor='selection'>Sele1ction</label>
         <input
           type='radio'
           id='line'
           checked={tool === 'line'}
-          onChange={() => setTool('line')}
+          onChange={() => handleToolChange('line')}
         />
         <label htmlFor='line'>Line</label>
         <input
           type='radio'
           id='rectangle'
           checked={tool === 'rectangle'}
-          onChange={() => setTool('rectangle')}
+          onChange={() => handleToolChange('rectangle')}
         />
         <label htmlFor='rectangle'>Rectangle</label>
         <input
           type='radio'
           id='pencil'
           checked={tool === 'pencil'}
-          onChange={() => setTool('pencil')}
+          onChange={() => handleToolChange('pencil')}
         />
         <label htmlFor='pencil'>Pencil</label>
         <input
           type='radio'
           id='text'
           checked={tool === 'text'}
-          onChange={() => setTool('text')}
+          onChange={() => handleToolChange('text')}
         />
         <label htmlFor='text'>Text</label>
       </div>
       <div style={{ position: 'fixed', zIndex: 2, bottom: 0, padding: 10 }}>
         <button onClick={() => onZoom(-0.1)}>-</button>
-        <span onClick={() => setScale(1)}>
+        <span
+          onClick={() => {
+            setScale(1);
+            setCookie('scale', 1);
+          }}
+        >
           {new Intl.NumberFormat('en-GB', { style: 'percent' }).format(scale)}{' '}
         </span>
         <button onClick={() => onZoom(0.1)}>+</button>
@@ -1046,13 +1120,20 @@ const Canvas = () => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         style={{ position: 'absolute', zIndex: 1 }}
-      >
-        Canvas
-      </canvas>
+      />
 
-      <div ref={colorsRef} className='colors'>
-        <input id='color' type='color' />
+      <div ref={colorsRef} className='color-picker'>
+        <input id='color' onChange={onColorUpdate} type='color' />
       </div>
+      <input
+        onChange={handleStrokeChange}
+        type='range'
+        id='stroke-width'
+        min='3'
+        max='25'
+        step='0.5'
+        value={strokeSize}
+      />
     </div>
   );
 };
