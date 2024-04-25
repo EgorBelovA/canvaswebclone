@@ -252,10 +252,10 @@
 
 // export default Canvas;
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import rough from 'roughjs';
 import getStroke from 'perfect-freehand';
-// import DisableZoom from './DisableZoom';
+import DisableZoom from './DisableZoom';
 import '../scss/partials/canvas.scss';
 import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
@@ -543,14 +543,24 @@ const Canvas = () => {
     if (cookies.strokeSize) setStrokeSize(cookies.strokeSize);
     if (cookies.strokeColor) setStrokeColor(cookies.strokeColor);
     if (cookies.tool) setTool(cookies.tool);
-    console.log(window.innerHeight, window.innerWidth);
+    // console.log(window.innerHeight, window.innerWidth);
     if (cookies.panOffset) setPanOffset(cookies.panOffset);
     if (cookies.scale) setScale(cookies.scale);
   }, []);
 
+  const onResize = () => {
+    console.log(scale);
+    setScale(scale);
+  };
+  useEffect(() => {
+    window.addEventListener('resize', onResize, false);
+    onResize();
+  }, []);
+
   const onColorUpdate = (e: any) => {
+    console.log(pageURL);
     setStrokeColor(e.target.value);
-    setCookie('strokeColor', e.target.value);
+    setCookie('strokeColor', e.target.value, { path: pageURL });
   };
 
   const handleToolChange = (tool: any) => {
@@ -565,6 +575,7 @@ const Canvas = () => {
 
   // const navigate = useNavigate();
   const slug = window.location.pathname.split('/')[2];
+  const pageURL = window.location.origin + '/canvas/' + slug;
 
   const socketRef = useRef<WebSocket | null>(null);
 
@@ -615,16 +626,17 @@ const Canvas = () => {
       });
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const data2 = new Map(Object.entries(data));
+    const el = [];
     for (let elem of data2) {
       let e = elem[1] as any;
-      elements.push(e.element);
+      el.push(e.element);
     }
-    setElements((prevState: any) => [...prevState]);
+    setElements(el, true);
   }, [data]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     const ratio = window.devicePixelRatio;
     canvas.width = window.innerWidth * ratio;
@@ -632,11 +644,6 @@ const Canvas = () => {
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
     canvas?.getContext('2d')?.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-    // canvas.replaceWith(myCanvas);
-    // canvas.width = window.innerWidth;
-    // canvas.height = window.innerHeight;
-    // const canvas = myCanvas;
     const context = canvas?.getContext('2d');
     const roughCanvas = rough.canvas(canvas!);
 
@@ -732,28 +739,83 @@ const Canvas = () => {
   useEffect(() => {
     const websocket_url = `${wsProtocol}://${location.host}/${slug}/`;
     socketRef.current = new WebSocket(websocket_url);
+  }, []);
 
-    socketRef.current.onopen = (e: any) => {
+  const throttle = (callback: any, delay: any) => {
+    let previousCall = new Date().getTime();
+    return function () {
+      const time = new Date().getTime();
+      if (time - previousCall >= delay) {
+        previousCall = time;
+        callback.apply(null, arguments);
+      }
+    };
+  };
+
+  // ReactDOM.render(<Cursor />);
+
+  useEffect(() => {
+    const onMouseMove = (e: any) => {
+      const { clientX, clientY } = getMouseCoordinates(e);
+      socketRef!.current!.send(
+        JSON.stringify({
+          type: 'cursorMove',
+          userid: localStorage.getItem('access_token') || '',
+          x: clientX - panOffset.x,
+          y: clientY - panOffset.y,
+        })
+      );
+    };
+
+    window.addEventListener('mousemove', throttle(onMouseMove, 500), false);
+  }, [panOffset]);
+
+  useEffect(() => {
+    const cursor = document.querySelector('.cursor') as HTMLElement;
+    let currentX = 0;
+    let currentY = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let ease = 0.1;
+
+    const run = () => {
+      requestAnimationFrame(run);
+      currentX += (targetX - currentX) * ease;
+      currentY += (targetY - currentY) * ease;
+      const t = `translate3d(${currentX}px,${currentY}px,0px)`;
+      let s = cursor.style;
+
+      s['transform'] = t;
+    };
+    run();
+    socketRef!.current!.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'cursorMove') {
+        if (data.userid !== localStorage.getItem('access_token')) {
+          targetX = data.x + panOffset.x;
+          targetY = data.y + panOffset.y;
+        }
+      }
+    });
+  }, [panOffset]);
+
+  useEffect(() => {
+    socketRef!.current!.onopen = (e: any) => {
       console.log('open', e);
     };
 
-    socketRef.current.onmessage = (e: any) => {
-      let data = JSON.parse(e.data);
-      elements.push(data.element);
-      const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-      const context = canvas?.getContext('2d');
-      const roughCanvas = rough.canvas(canvas!);
-      drawElement(roughCanvas, context, data.element);
-      // setElements((prevState: any) => [...prevState]);
-      // console.log(data.element);
-      // console.log(elements);
-      // setElements(data.element);
-    };
+    socketRef!.current!.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type !== 'cursorMove') {
+        setElements((prevState: any) => [...prevState, data.element], true);
+      }
+    });
 
     socketRef.current!.onerror = (e: any) => {
       console.log('error', e);
     };
-  }, []);
+  }, [elements]);
 
   useEffect(() => {
     const textArea = textAreaRef.current;
@@ -831,15 +893,21 @@ const Canvas = () => {
 
   const getMouseCoordinates = (event: any) => {
     const clientX =
-      (event.clientX - panOffset.x * scale + scaleOffset.x) / scale;
+      ((event.clientX || event.touches[0].clientX) -
+        panOffset.x * scale +
+        scaleOffset.x) /
+      scale;
     const clientY =
-      (event.clientY - panOffset.y * scale + scaleOffset.y) / scale;
+      ((event.clientY || event.touches[0].clientY) -
+        panOffset.y * scale +
+        scaleOffset.y) /
+      scale;
     return { clientX, clientY };
   };
 
   const handleStrokeChange = (event: any) => {
     setStrokeSize(parseInt(event.target.value));
-    setCookie('strokeSize', event.target.value);
+    setCookie('strokeSize', event.target.value, { path: `pageURL` });
   };
 
   const handleMouseDown = (event: any) => {
@@ -994,8 +1062,8 @@ const Canvas = () => {
       });
       socketRef?.current?.send(
         JSON.stringify({
+          type: 'elementUpdate',
           element: elements[index],
-          color: 'red',
         })
       );
     }
@@ -1005,7 +1073,11 @@ const Canvas = () => {
     setAction('none');
     setSelectedElement(null);
 
-    setCookie('panOffset', { x: panOffset.x, y: panOffset.y });
+    setCookie(
+      'panOffset',
+      { x: panOffset.x, y: panOffset.y },
+      { path: pageURL }
+    );
   };
 
   const handleBlur = (event: any) => {
@@ -1017,17 +1089,17 @@ const Canvas = () => {
 
   const onZoom = (increment: any) => {
     setScale((prevState) => Math.min(Math.max(prevState + increment, 0.1), 5));
-    setCookie('scale', scale + 0.1);
+    setCookie('scale', scale + 0.1, { path: pageURL });
   };
 
   return (
-    <div>
+    <div style={{ overflow: 'hidden' }}>
       <meta
         name='viewport'
         content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height'
       />
 
-      {/* <DisableZoom /> */}
+      <DisableZoom />
       <Sidebar />
       <div className='circular-cursor'></div>
       <div
@@ -1077,7 +1149,7 @@ const Canvas = () => {
         <span
           onClick={() => {
             setScale(1);
-            setCookie('scale', 1);
+            setCookie('scale', 1, { path: pageURL });
           }}
         >
           {new Intl.NumberFormat('en-GB', { style: 'percent' }).format(scale)}{' '}
@@ -1119,6 +1191,9 @@ const Canvas = () => {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onTouchStart={handleMouseDown}
+        onTouchMove={handleMouseMove}
+        onTouchCancel={handleMouseUp}
         style={{ position: 'absolute', zIndex: 1 }}
       />
 
@@ -1134,6 +1209,17 @@ const Canvas = () => {
         step='0.5'
         value={strokeSize}
       />
+      <object
+        style={{
+          width: 25,
+          height: 25,
+          position: 'absolute',
+          zIndex: 1,
+        }}
+        data='/static/icons/cursor.svg'
+        type='image/svg+xml'
+        className='cursor'
+      ></object>
     </div>
   );
 };

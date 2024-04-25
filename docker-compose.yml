@@ -24,8 +24,6 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     #   - .:/docker-entrypoint-initdb.d
-    # profiles:
-    #   - devel
 
   # clickhouse-db:
   #   image: yandex/clickhouse-server
@@ -42,9 +40,9 @@ services:
     ports:
       - '8000:8000'
     restart: always
-    # depends_on:
-    #   - postgres-db
-    #   - redis
+    depends_on:
+      #   - postgres-db
+      - redis
     environment:
       DEBUG: 'False'
       DB_NAME: 'canvas'
@@ -61,8 +59,6 @@ services:
     container_name: redis
     ports:
       - '6379:6379'
-    profiles:
-      - devel
 
   nginx:
     image: nginx:latest
@@ -82,13 +78,13 @@ services:
     # depends_on:
     #   - canvas
 
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    command: certbot certonly --webroot -w /var/www/certbot --email ebelov54@gmail.com -d www.canvas-professional.com --agree-tos
+  # certbot:
+  #   image: certbot/certbot
+  #   container_name: certbot
+  #   volumes:
+  #     - ./certbot/conf:/etc/letsencrypt
+  #     - ./certbot/www:/var/www/certbot
+  #   command: certbot certonly --webroot -w /var/www/certbot --email ebelov54@gmail.com -d www.canvas-professional.com --agree-tos
 
   canvas-app:
     container_name: canvas-app

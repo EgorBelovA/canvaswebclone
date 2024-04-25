@@ -37,7 +37,6 @@ msgpack==1.0.8
 oauthlib==3.2.2
 packaging==24.0
 pillow==10.2.0
-psycopg2==2.9.9
 psycopg2-binary==2.9.9
 pyasn1==0.5.1
 pyasn1-modules==0.3.0

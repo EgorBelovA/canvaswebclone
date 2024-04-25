@@ -1,20 +1,14 @@
+
 import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'canvas.settings')
+django.setup()
 
-from channels.routing import ProtocolTypeRouter
-from django.core.asgi import get_asgi_application
-
-from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from api.consumer import CanvasConsumer
 from django.urls import path, re_path
-
-import django
-from canvas import routing
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'canvas.settings')
-
-django.setup()
-
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
 
 django_asgi_app = get_asgi_application()
 

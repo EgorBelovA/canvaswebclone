@@ -58,3 +58,14 @@ html {
   z-index: 100;
   pointer-events: none;
 }
+
+$cursorColor: #0072ce !default;
+
+.cursor {
+  position: absolute;
+  will-change: transform;
+
+  @media (hover: none) {
+    display: none;
+  }
+}
