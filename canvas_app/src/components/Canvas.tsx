@@ -1,265 +1,18 @@
-// import { useRef, useEffect } from 'react';
-// // import Cursor from './Cursor/Cursor';
-
-// const Canvas = () => {
-//   const canvasRef = useRef<HTMLCanvasElement>(null);
-// const colorsRef = useRef<HTMLDivElement>(null);
-// const socketRef = useRef<WebSocket | null>(null);
-//   const cursor_svg = useRef<SVGSVGElement>(null);
-
-// const navigate = useNavigate();
-// const slug = window.location.pathname.split('/')[2];
-//   // console.log(slug);
-
-// client
-//   .get(`/api/canvas/${slug}/`)
-//   .then((e) => {
-//     console.log(e.data);
-//   })
-//   .catch((e) => {
-//     console.log(e);
-//     navigate('/dashboard/');
-//   });
-//   useEffect(() => {
-//     // const canvas = useRef<fabric.Canvas>(null);
-
-//     // canvas.current = new fabric.Canvas(canvasRef.current, {
-//     //   imageSmoothingEnabled: false,
-//     // });
-//     const canvas = canvasRef.current;
-//     const context = canvas?.getContext('2d');
-//     const w = canvas?.width || 0;
-//     const h = canvas?.height || 0;
-
-//     const current = {
-//       color: 'black',
-//       x: 0,
-//       y: 0,
-//     };
-
-//     let dataURL = '';
-//     let drawing = false;
-
-//     const drawLine = (
-//       x0: any,
-//       y0: any,
-//       x1: any,
-//       y1: any,
-//       color: any,
-//       send: any
-//     ) => {
-//       context?.beginPath();
-//       context?.moveTo(x0, y0);
-//       context?.lineTo(x1, y1);
-//       context!.strokeStyle = color;
-//       context!.lineWidth = 10;
-//       context?.stroke();
-//       context!.lineCap = 'round';
-//       context?.closePath();
-//       context?.save();
-//       // console.log(context);
-//       // var canvasSVGContext = new canvas.Deferred();
-//       // context.wrapCanvas(document.querySelector('canvas'));
-//       // console.log(canvasSVGContext.getSVG());
-//       // dataURL = canvasRef!.current!.toDataURL('image/webp', 1);
-
-//       if (!send) {
-//         return;
-//       }
-
-//       socketRef?.current?.send(
-//         JSON.stringify({
-//           x0: x0 / w,
-//           y0: y0 / h,
-//           x1: x1 / w,
-//           y1: y1 / h,
-//           color,
-//         })
-//       );
-//     };
-
-//     const onMouseDown = (e: any) => {
-//       drawing = true;
-//       current!.x = e.clientX || e.touches[0].clientX;
-//       current!.y = e.clientY || e.touches[0].clientY;
-//     };
-
-//     // const mouse_pos_send = (x0, y0, x1, y1, color) => {
-//     //   if (socketRef.current.readyState) {
-//     //     socketRef.current.send(
-//     //       JSON.stringify({
-//     //         x0: x0 / w,
-//     //         y0: y0 / h,
-//     //         x1: x1 / w,
-//     //         y1: y1 / h,
-//     //         color,
-//     //       })
-//     //     );
-//     //   }
-//     // };
-//     const onMouseMove = (e: any) => {
-//       // if (!drawing) {
-//       //   mouse_pos_send(
-//       //     current.x,
-//       //     current.y,
-//       //     e.clientX || e.touches[0].clientX,
-//       //     e.clientY || e.touches[0].clientY,
-//       //     null
-//       //   );
-//       // }
-
-//       if (!drawing) return;
-//       drawLine(
-//         current.x,
-//         current.y,
-//         e.clientX || e.touches[0].clientX,
-//         e.clientY || e.touches[0].clientY,
-//         current.color,
-//         true
-//       );
-//       current.x = e.clientX || e.touches[0].clientX;
-//       current.y = e.clientY || e.touches[0].clientY;
-//     };
-
-//     const onMouseUp = () => {
-//       if (!drawing) return;
-//       drawing = false;
-//     };
-
-//     const throttle = (callback: any, delay: any) => {
-//       let previousCall = new Date().getTime();
-//       return function () {
-//         const time = new Date().getTime();
-//         if (time - previousCall >= delay) {
-//           previousCall = time;
-//           callback.apply(null, arguments);
-//         }
-//       };
-//     };
-
-//     canvas?.addEventListener('mousedown', onMouseDown, false);
-//     canvas?.addEventListener('mouseup', onMouseUp, false);
-//     canvas?.addEventListener('mouseout', onMouseUp, false);
-//     canvas?.addEventListener('mousemove', throttle(onMouseMove, 5), false);
-
-//     canvas?.addEventListener('touchstart', onMouseDown, false);
-//     canvas?.addEventListener('touchend', onMouseUp, false);
-//     canvas?.addEventListener('touchcancel', onMouseUp, false);
-//     canvas?.addEventListener('touchmove', throttle(onMouseMove, 5), false);
-
-//     // const mouseDownEvent = new MouseEvent('mousedown', {
-//     //   bubbles: true,
-//     //   cancelable: true,
-//     //   view: window,
-//     // });
-
-//     // canvas?.addEventListener('mouseleave', handleMouseLeave);
-//     // canvas?.addEventListener('mouseenter', handleMouseEnter);
-
-//     // function handleMouseLeave(event: MouseEvent) {
-//     //   // if (event.target !== canvas) {
-//     //   console.log(123);
-//     //   event.preventDefault();
-//     //   event.stopPropagation();
-//     //   // }
-//     // }
-
-//     // function handleMouseEnter(event: MouseEvent) {
-//     //   // if (event.target !== canvas) {
-//     //   canvas?.dispatchEvent(mouseDownEvent);
-//     //   event.preventDefault();
-//     //   event.stopPropagation();
-//     //   // }
-//     // }
-//     const onColorUpdate = (e: any) => {
-//       console.log(e.target.value);
-//       current.color = e.target.value;
-//     };
-
-//     const color = colorsRef.current?.querySelector('#color');
-//     color?.addEventListener('change', onColorUpdate, false);
-
-//     const onResize = () => {
-//       canvas!.width = window.innerWidth;
-//       canvas!.height = window.innerHeight;
-//       let img = document.createElement('img');
-//       img.src = dataURL;
-//       // context?.drawImage(img, 0, 0);
-//       context?.restore();
-//       // context?.scale(2, 2);
-//       // console.log(123);
-//     };
-
-//     window.addEventListener('resize', onResize, false);
-//     onResize();
-
-// const onDrawingEvent = (data: any) => {
-//   // Cursor.setState({ x0: `${data.x1 * w}px` });
-//   // document.querySelector('#cursor').style.left = `${data.x1 * w}px`;
-//   // document.querySelector('#cursor').style.top = `${data.y1 * h}px`;
-//   if (data.color) {
-//     drawLine(
-//       data.x0 * w,
-//       data.y0 * h,
-//       data.x1 * w,
-//       data.y1 * h,
-//       data.color,
-//       false
-//     );
-//   }
-// };
-//     // const websocket_url = 'ws://' + location.host + '/socket-server/';
-//     const websocket_url = `ws://${location.host}/${slug}/`;
-//     socketRef.current = new WebSocket(websocket_url);
-
-//     socketRef.current.onopen = (e: any) => {
-//       console.log('open', e);
-//     };
-
-//     socketRef.current.onmessage = (e: any) => {
-//       // console.log(e);
-//       onDrawingEvent(JSON.parse(e.data));
-//     };
-
-//     socketRef.current!.onerror = (e: any) => {
-//       console.log('error', e);
-//     };
-//   }, []);
-
-//   return (
-//     <div>
-//       <DisableZoom />
-//       <Sidebar />
-
-//       <div id='cursor' style={{ position: 'absolute' }}>
-//         <svg
-//           xmlns='http://www.w3.org/2000/svg'
-//           width='20'
-//           height='100'
-//           viewBox='0 0 50 50'
-//           ref={cursor_svg}
-//         >
-//           <path d='M 29.699219 47 C 29.578125 47 29.457031 46.976563 29.339844 46.933594 C 29.089844 46.835938 28.890625 46.644531 28.78125 46.398438 L 22.945313 32.90625 L 15.683594 39.730469 C 15.394531 40.003906 14.96875 40.074219 14.601563 39.917969 C 14.238281 39.761719 14 39.398438 14 39 L 14 6 C 14 5.601563 14.234375 5.242188 14.601563 5.082031 C 14.964844 4.925781 15.390625 4.996094 15.683594 5.269531 L 39.683594 27.667969 C 39.972656 27.9375 40.074219 28.355469 39.945313 28.726563 C 39.816406 29.101563 39.480469 29.363281 39.085938 29.398438 L 28.902344 30.273438 L 35.007813 43.585938 C 35.117188 43.824219 35.128906 44.101563 35.035156 44.351563 C 34.941406 44.601563 34.757813 44.800781 34.515625 44.910156 L 30.113281 46.910156 C 29.980469 46.96875 29.84375 47 29.699219 47 Z'></path>
-//         </svg>
-//       </div>
-//       <canvas ref={canvasRef} className='canvas' />
-//       <div ref={colorsRef} className='colors'>
-//         <input id='color' type='color' />
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Canvas;
-
-import { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useLayoutEffect,
+  useCallback,
+} from 'react';
+// import { useNavigate } from 'react-router-dom';
 import rough from 'roughjs';
 import getStroke from 'perfect-freehand';
 import DisableZoom from './DisableZoom';
-import '../scss/partials/canvas.scss';
+import '../scss/components/canvas.scss';
 import axios from 'axios';
-// import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Notifications from './Notifications';
 import { useCookies } from 'react-cookie';
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -279,8 +32,7 @@ const createElement = (
   x2: any,
   y2: any,
   type: any,
-  strokeSize: any,
-  color: any
+  options: any
 ) => {
   switch (type) {
     case 'line':
@@ -291,9 +43,33 @@ const createElement = (
           : generator.rectangle(x1, y1, x2 - x1, y2 - y1, { roughness: 0 });
       return { id, x1, y1, x2, y2, type, roughElement };
     case 'pencil':
-      return { id, type, points: [{ x: x1, y: y1 }], strokeSize, color };
+      console.log(options);
+      return {
+        id,
+        type,
+        points: [{ x: x1, y: y1 }],
+        options: {
+          strokeColor: options?.strokeColor,
+          strokeSize: options?.strokeSize,
+        },
+      };
     case 'text':
-      return { id, type, x1, y1, x2, y2, text: '' };
+      return {
+        id,
+        type,
+        x1,
+        y1,
+        x2,
+        y2,
+        text: '',
+        options: {
+          fontColor: options?.fontColor,
+          fontSize: options?.fontSize,
+          fontFamily: options?.fontFamily,
+        },
+      };
+    case 'image':
+      return { id, type, x1, y1, x2, y2, url: '' };
     default:
       throw new Error(`Type not recognised: ${type}`);
   }
@@ -344,6 +120,8 @@ const positionWithinElement = (x: any, y: any, element: any) => {
       });
       return betweenAnyPoint ? 'inside' : null;
     case 'text':
+      return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
+    case 'image':
       return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
     default:
       throw new Error(`Type not recognised: ${type}`);
@@ -413,7 +191,7 @@ const resizedCoordinates = (
     case 'end':
       return { x1, y1, x2: clientX, y2: clientY };
     default:
-      return null; //should not really get here...
+      return null;
   }
 };
 
@@ -465,18 +243,21 @@ const drawElement = (roughCanvas: any, context: any, element: any) => {
       roughCanvas.draw(element.roughElement);
       break;
     case 'pencil':
-      // console.log(element.points);
       const stroke = getSvgPathFromStroke(
-        getStroke(element.points, { size: element.strokeSize })
+        getStroke(element.points, { size: element?.options?.strokeSize })
       );
-      context.fillStyle = element.color;
+      context.fillStyle = element?.options?.strokeColor;
       context.fill(new Path2D(stroke));
 
       break;
     case 'text':
       context.textBaseline = 'top';
-      context.font = '24px sans-serif';
+      context.font = `${element?.options?.fontSize}px ${element?.options?.fontFamily}`;
+      context.fillStyle = element?.options?.fontColor;
       context.fillText(element.text, element.x1, element.y1);
+      break;
+    case 'image':
+      context.drawImage(element.imgElement, element.x1, element.y1);
       break;
     default:
       throw new Error(`Type not recognised: ${element.type}`);
@@ -524,12 +305,48 @@ const Canvas = () => {
   });
   const [scale, setScale] = useState(1);
   const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
+  const [innnerSize, setInnnerSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const pressedKeys = usePressedKeys();
   const colorsRef = useRef<HTMLDivElement>(null);
+  const [canvasData, setCanvasData] = useState<any>({});
 
   const [strokeSize, setStrokeSize] = useState(15);
-  const [strokeColor, setStrokeColor] = useState('#000000');
+  const [strokeColor, setStrokeColor] = useState('#20190c');
+  // const [_, _] = useState('times_new_roman');
+  const [fontColor, setFontColor] = useState('#000000');
+  const [fontSize, setFontSize] = useState(24);
+  const [fontFamily, setFontFamily] = useState('Times New Roman');
+
+  const [permission, setPermission] = useState(false);
+
+  const [default_fonts, setDefaultFonts] = useState([
+    { family: 'Times New Roman' },
+    { family: 'Arial' },
+    { family: 'Helvetica' },
+    { family: 'Verdana' },
+    { family: 'Georgia' },
+    { family: 'Garamond' },
+    { family: 'Courier New' },
+    { family: 'Brush Script MT' },
+  ]);
+  const [fonts, setFonts] = useState<any>(default_fonts);
+
+  function sortDefaultFontsByFamily(
+    fonts: { family: string }[]
+  ): { family: string }[] {
+    return fonts.sort((a, b) => a.family.localeCompare(b.family));
+  }
+
+  useLayoutEffect(() => {
+    const sortedFonts = sortDefaultFontsByFamily(default_fonts);
+    setDefaultFonts(sortedFonts);
+  }, [default_fonts]);
+
+  const [, setImgData] = useState<string>();
 
   const [cookies, setCookie] = useCookies([
     'strokeColor',
@@ -537,57 +354,176 @@ const Canvas = () => {
     'tool',
     'panOffset',
     'scale',
+    'fontColor',
+    'fontSize',
+    'fontFamily',
+    'zoomIndex',
+    'gridType',
   ]);
+  function youtube_parser(url: any) {
+    var regExp =
+      /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    var match = url.match(regExp);
+    return match && match[7].length == 11 ? match[7] : false;
+  }
 
   useEffect(() => {
+    const pasteImg = async () => {
+      try {
+        const clipboardItems = await navigator.clipboard.read();
+        console.log(clipboardItems);
+        if (clipboardItems.length > 0) {
+          const clipboardItem = clipboardItems[0];
+          const types = await clipboardItem.types;
+          if (
+            types.includes('image/png') ||
+            types.includes('image/jpeg') ||
+            types.includes('image/jpg') ||
+            types.includes('image/gif') ||
+            types.includes('image/webp')
+          ) {
+            const blobOutput =
+              (await clipboardItem.getType('image/png')) ||
+              (await clipboardItem.getType('image/jpeg')) ||
+              (await clipboardItem.getType('image/jpg')) ||
+              (await clipboardItem.getType('image/gif')) ||
+              (await clipboardItem.getType('image/webp'));
+
+            const data = URL.createObjectURL(blobOutput);
+            const imgElement = new Image();
+            imgElement.src = data;
+            imgElement.crossOrigin = 'anonymous';
+
+            imgElement.onload = () => {
+              setImgData(data);
+              setElements([
+                ...elements,
+                {
+                  type: 'image',
+                  imgElement,
+                  x1:
+                    window.innerWidth / 2 - panOffset.x - imgElement.width / 2,
+                  y1:
+                    window.innerHeight / 2 -
+                    panOffset.y -
+                    imgElement.height / 2,
+                },
+              ]);
+            };
+          } else if (types.includes('text/plain')) {
+            const text = await navigator.clipboard.readText();
+            const domain = new URL(text).hostname;
+            console.log(domain);
+            const iframe = document.createElement('iframe');
+            const youtubeID = `https://www.youtube.com/embed/${youtube_parser(
+              text
+            )}`;
+            iframe.src = youtubeID;
+            // iframe.style.display = 'none';
+            iframe.style.position = 'absolute';
+            iframe.style.zIndex = '300';
+            iframe.style.top = '100px';
+            iframe.height = 'auto';
+            iframe.width = 'auto';
+            document.body.appendChild(iframe);
+
+            // setElements([
+            //   ...elements,
+            //   {
+            //     type: 'iframe',
+            //     iframe,
+            //     x1: window.innerWidth / 2 - panOffset.x,
+            //     y1: window.innerHeight / 2 - panOffset.y,
+            //   },
+            // ]);
+            // setElements([
+            //   ...elements,
+            //   {
+            //     type: 'text',
+            //     text,
+            //     x1: window.innerWidth / 2 - panOffset.x,
+            //     y1: window.innerHeight / 2 - panOffset.y,
+            //   },
+            // ]);
+          }
+        } else {
+          console.log('No clipboard items found');
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    window.addEventListener('paste', pasteImg, false);
+
+    return () => {
+      window.removeEventListener('paste', pasteImg, false);
+    };
+  }, [panOffset, elements]);
+
+  useEffect(() => {
+    document.getElementsByTagName('html')[0].style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden !important';
+
+    return () => {
+      document.body.style.overflow = 'visible';
+    };
+  }, []);
+
+  useLayoutEffect(() => {
     if (cookies.strokeSize) setStrokeSize(cookies.strokeSize);
     if (cookies.strokeColor) setStrokeColor(cookies.strokeColor);
     if (cookies.tool) setTool(cookies.tool);
-    // console.log(window.innerHeight, window.innerWidth);
     if (cookies.panOffset) setPanOffset(cookies.panOffset);
     if (cookies.scale) setScale(cookies.scale);
+    if (cookies.fontColor) setFontColor(cookies.fontColor);
+    if (cookies.fontSize) setFontSize(cookies.fontSize);
+    if (cookies.fontFamily) setFontFamily(cookies.fontFamily);
+    if (cookies.zoomIndex) setZoomIndex(cookies.zoomIndex);
+    if (cookies.gridType) setGridType(cookies.gridType);
   }, []);
 
   const onResize = () => {
-    console.log(scale);
-    setScale(scale);
+    setInnnerSize({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
   };
   useEffect(() => {
     window.addEventListener('resize', onResize, false);
     onResize();
-  }, []);
+    return () => {
+      window.removeEventListener('resize', onResize, false);
+    };
+  }, [scale]);
 
-  const onColorUpdate = (e: any) => {
+  const onStrokeColorUpdate = (e: any) => {
     console.log(pageURL);
     setStrokeColor(e.target.value);
-    setCookie('strokeColor', e.target.value, { path: pageURL });
+    setCookie('strokeColor', e.target.value);
+  };
+
+  const onFontColorUpdate = (e: any) => {
+    setFontColor(e.target.value);
+    setCookie('fontColor', e.target.value);
   };
 
   const handleToolChange = (tool: any) => {
     setTool(tool);
-    setCookie('tool', tool);
+    setCookie('tool', tool, { path: `/canvas/${slug}` });
   };
 
   var wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
 
-  const color = colorsRef.current?.querySelector('#color');
-  color?.addEventListener('change', onColorUpdate, false);
+  const strokeColorElement = colorsRef.current?.querySelector('#stroke-color');
+  const fontColorElement = colorsRef.current?.querySelector('#font-color');
 
-  // const navigate = useNavigate();
+  strokeColorElement?.addEventListener('change', onStrokeColorUpdate, false);
+  fontColorElement?.addEventListener('change', onFontColorUpdate, false);
+
   const slug = window.location.pathname.split('/')[2];
   const pageURL = window.location.origin + '/canvas/' + slug;
 
   const socketRef = useRef<WebSocket | null>(null);
-
-  // useEffect(() => {
-  //   window.addEventListener('close', () => {
-  //     console.log(123);
-  //   });
-  // }, []);
-
-  // const EmptyCanvas = () => {
-  //   client.post();
-  // };
 
   useEffect(() => {
     let cursor = document.querySelector('.circular-cursor');
@@ -611,18 +547,16 @@ const Canvas = () => {
   }, [scale]);
 
   const [data, setData] = useState({});
-  useEffect(() => {
+  useLayoutEffect(() => {
     client
       .get(`/api/canvas/${slug}/`)
-      .then(async (e) => {
+      .then((e) => {
+        setCanvasData(e.data.canvas);
         setData(e.data.elements);
-        // Init(e.data.elements);
-        // const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-        // const context = canvas?.getContext('2d');
+        // setPermission(true);
       })
       .catch((e) => {
         console.log(e);
-        // navigate('/dashboard/');
       });
   }, []);
 
@@ -637,6 +571,7 @@ const Canvas = () => {
   }, [data]);
 
   useLayoutEffect(() => {
+    if (!permission) return;
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     const ratio = window.devicePixelRatio;
     canvas.width = window.innerWidth * ratio;
@@ -652,8 +587,8 @@ const Canvas = () => {
     const scaledWidth = canvas.width * scale;
     const scaledHeight = canvas.height * scale;
 
-    const scaleOffsetX = (scaledWidth - canvas.width) / 2;
-    const scaleOffsetY = (scaledHeight - canvas.height) / 2;
+    const scaleOffsetX = (scaledWidth - canvas.width / ratio) / 2;
+    const scaleOffsetY = (scaledHeight - canvas.height / ratio) / 2;
     setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
 
     context!.save();
@@ -668,7 +603,16 @@ const Canvas = () => {
       drawElement(roughCanvas, context, element);
     });
     context!.restore();
-  }, [elements, action, selectedElement, panOffset, scale]);
+  }, [
+    elements,
+    action,
+    selectedElement,
+    panOffset,
+    scale,
+    innnerSize,
+    fonts,
+    permission,
+  ]);
 
   useEffect(() => {
     const undoRedoFunction = (event: any) => {
@@ -680,7 +624,6 @@ const Canvas = () => {
         }
       }
     };
-
     document.addEventListener('keydown', undoRedoFunction);
     return () => {
       document.removeEventListener('keydown', undoRedoFunction);
@@ -689,41 +632,49 @@ const Canvas = () => {
 
   const handleWheel = (event: any) => {
     event.preventDefault();
-    // console.log(event);
-    // const smoothFactor = 0.01; // Adjust this value to control the smoothness
-    setPanOffset((prev) => ({
-      x: prev.x,
-      y: 0,
-    }));
+
+    if (event.ctrlKey || event.metaKey) {
+      // console.log(scale);
+      // onZoom(0.1);
+      setScale((prev) => prev - 0.05 * Math.sign(event.deltaY));
+    } else {
+      panOffset.x -= event.deltaX / scale;
+      panOffset.y -= event.deltaY / scale;
+      setPanOffset({ x: panOffset.x, y: panOffset.y });
+    }
   };
 
   useEffect(() => {
-    window.addEventListener('wheel', handleWheel, { passive: false });
-
+    window.addEventListener('wheel', handleWheel, {
+      passive: false,
+    } as AddEventListenerOptions);
     return () => {
-      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('wheel', handleWheel, {
+        passive: false,
+      } as AddEventListenerOptions);
     };
-  }, []);
+  }, [panOffset]);
 
   useEffect(() => {
-    const panOrZoomFunction = (event: any) => {
-      if (pressedKeys.has('Meta') || pressedKeys.has('Control'))
-        onZoom(event.deltaY * -0.01);
-      else {
-        setPanOffset((prev) => ({
-          x: prev.x - event.deltaX,
-          y: prev.y - event.deltaY,
-        }));
-      }
-    };
+    document.documentElement.style.setProperty(
+      '--dot-space',
+      `${30 * scale}px`
+    );
+  }, [scale]);
 
-    document.addEventListener('wheel', panOrZoomFunction);
-    return () => {
-      document.removeEventListener('wheel', panOrZoomFunction);
-    };
-  }, [pressedKeys]);
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--dot-x',
+      `${panOffset.x * scale}px`
+    );
+    document.documentElement.style.setProperty(
+      '--dot-y',
+      `${panOffset.y * scale}px`
+    );
+  }, [panOffset]);
 
   const panOrZoomFunction = (event: any) => {
+    // event.preventDefault();
     if (pressedKeys.has('Meta') || pressedKeys.has('Control'))
       onZoom(event.deltaY * -0.01);
     else {
@@ -734,12 +685,44 @@ const Canvas = () => {
     }
   };
 
-  document.addEventListener('wheel', panOrZoomFunction, { passive: false });
+  useEffect(() => {
+    // document.addEventListener('wheel', panOrZoomFunction);
+    // return () => {
+    //   document.removeEventListener('wheel', panOrZoomFunction);
+    // };
+  }, [panOffset]);
 
   useEffect(() => {
     const websocket_url = `${wsProtocol}://${location.host}/${slug}/`;
     socketRef.current = new WebSocket(websocket_url);
+
+    socketRef!.current!.onclose = (e: any) => {
+      console.log('close', e);
+      socketRef.current!.close();
+      socketRef.current = new WebSocket(websocket_url);
+    };
+
+    socketRef.current!.onerror = (e: any) => {
+      console.log('error', e);
+      socketRef.current!.close();
+      socketRef.current = new WebSocket(websocket_url);
+    };
   }, []);
+
+  const onMouseMove = useCallback(
+    (e: any) => {
+      const { clientX, clientY } = getMouseCoordinates(e);
+      socketRef!.current!.send(
+        JSON.stringify({
+          type: 'cursorMove',
+          userid: localStorage.getItem('access_token') || '',
+          x: clientX - panOffset.x * scale + scaleOffset.x,
+          y: clientY - panOffset.y * scale + scaleOffset.y,
+        })
+      );
+    },
+    [panOffset]
+  );
 
   const throttle = (callback: any, delay: any) => {
     let previousCall = new Date().getTime();
@@ -752,22 +735,12 @@ const Canvas = () => {
     };
   };
 
-  // ReactDOM.render(<Cursor />);
-
   useEffect(() => {
-    const onMouseMove = (e: any) => {
-      const { clientX, clientY } = getMouseCoordinates(e);
-      socketRef!.current!.send(
-        JSON.stringify({
-          type: 'cursorMove',
-          userid: localStorage.getItem('access_token') || '',
-          x: clientX - panOffset.x,
-          y: clientY - panOffset.y,
-        })
-      );
+    const handleMouseMove = throttle(onMouseMove, 125);
+    window.addEventListener('mousemove', handleMouseMove, false);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
     };
-
-    window.addEventListener('mousemove', throttle(onMouseMove, 500), false);
   }, [panOffset]);
 
   useEffect(() => {
@@ -788,15 +761,29 @@ const Canvas = () => {
       s['transform'] = t;
     };
     run();
-    socketRef!.current!.addEventListener('message', (event) => {
+
+    const handleCursorMessage = (event: any) => {
       const data = JSON.parse(event.data);
+      // const ratio = window.devicePixelRatio;
+
       if (data.type === 'cursorMove') {
+        // console.log(data.x + panOffset.x > window.innerWidth);
         if (data.userid !== localStorage.getItem('access_token')) {
           targetX = data.x + panOffset.x;
           targetY = data.y + panOffset.y;
         }
       }
-    });
+    };
+
+    socketRef!.current!.addEventListener('message', handleCursorMessage, false);
+
+    return () => {
+      socketRef!.current!.removeEventListener(
+        'message',
+        handleCursorMessage,
+        false
+      );
+    };
   }, [panOffset]);
 
   useEffect(() => {
@@ -804,16 +791,20 @@ const Canvas = () => {
       console.log('open', e);
     };
 
-    socketRef!.current!.addEventListener('message', (event) => {
+    const handleMessage = (event: any) => {
       const data = JSON.parse(event.data);
-
-      if (data.type !== 'cursorMove') {
+      if (
+        data.type !== 'cursorMove' &&
+        data.userid !== localStorage.getItem('access_token')
+      ) {
         setElements((prevState: any) => [...prevState, data.element], true);
       }
-    });
+    };
 
-    socketRef.current!.onerror = (e: any) => {
-      console.log('error', e);
+    socketRef!.current!.addEventListener('message', handleMessage, false);
+
+    return () => {
+      socketRef!.current!.removeEventListener('message', handleMessage, false);
     };
   }, [elements]);
 
@@ -843,16 +834,10 @@ const Canvas = () => {
     switch (type) {
       case 'line':
       case 'rectangle':
-        elementsCopy[id] = createElement(
-          id,
-          x1,
-          y1,
-          x2,
-          y2,
-          type,
-          strokeSize,
-          strokeColor
-        );
+        elementsCopy[id] = createElement(id, x1, y1, x2, y2, type, {
+          strokeSize: strokeSize,
+          strokeColor: strokeColor,
+        });
         break;
       case 'pencil':
         elementsCopy[id].points = [
@@ -877,37 +862,75 @@ const Canvas = () => {
                 x1 + textWidth,
                 y1 + textHeight,
                 type,
-                strokeSize,
-                strokeColor
+                {
+                  fontColor: fontColor,
+                  fontSize: fontSize,
+                  fontFamily: fontFamily,
+                }
               ),
               text: options.text,
+              fontColor: options.fontColor,
+              fontSize: options.fontSize,
+              fontFamily: options.fontFamily,
             };
           }
         }
+        client.post(`/api/canvas/${slug}/`, {
+          element: elementsCopy[id],
+        });
+        socketRef?.current?.send(
+          JSON.stringify({
+            userid: localStorage.getItem('access_token') || '',
+            type: 'elementUpdate',
+            element: elementsCopy[id],
+          })
+        );
+        break;
+      case 'image':
+        elementsCopy[id] = {
+          ...createElement(id, x1, y1, x2, y2, type, { url: options.url }),
+          url: options.url,
+        };
+
         break;
       default:
         throw new Error(`Type not recognised: ${type}`);
     }
+
     setElements(elementsCopy, true);
   };
 
   const getMouseCoordinates = (event: any) => {
     const clientX =
-      ((event.clientX || event.touches[0].clientX) -
+      ((event.clientX ||
+        event.changedTouches[0].clientX ||
+        event.touches[0].clientX) -
         panOffset.x * scale +
         scaleOffset.x) /
       scale;
     const clientY =
-      ((event.clientY || event.touches[0].clientY) -
+      ((event.clientY ||
+        event.changedTouches[0].clientY ||
+        event.touches[0].clientY) -
         panOffset.y * scale +
         scaleOffset.y) /
       scale;
     return { clientX, clientY };
   };
 
-  const handleStrokeChange = (event: any) => {
+  const handleStrokeSizeChange = (event: any) => {
     setStrokeSize(parseInt(event.target.value));
-    setCookie('strokeSize', event.target.value, { path: `pageURL` });
+    setCookie('strokeSize', event.target.value, { path: `/canvas/${slug}` });
+  };
+
+  const handleFontSizeChange = (event: any) => {
+    setFontSize(parseInt(event.target.value));
+    setCookie('fontSize', event.target.value, { path: `/canvas/${slug}` });
+  };
+
+  const handleFontColorChange = (event: any) => {
+    setFontColor(event.target.value);
+    // setCookie('fontColor', event.target.value, { path: `/canvas/${slug}` });
   };
 
   const handleMouseDown = (event: any) => {
@@ -954,8 +977,7 @@ const Canvas = () => {
         clientX,
         clientY,
         tool,
-        strokeSize,
-        strokeColor
+        { strokeColor: strokeColor, strokeSize: strokeSize }
       );
       setElements((prevState: any) => [...prevState, element]);
       setSelectedElement(element);
@@ -966,9 +988,7 @@ const Canvas = () => {
 
   const handleMouseMove = (event: any) => {
     const { clientX, clientY } = getMouseCoordinates(event);
-
     if (action === 'panning') {
-      // console.log(event);
       const deltaX = clientX - startPanMousePosition.x;
       const deltaY = clientY - startPanMousePosition.y;
       setPanOffset({
@@ -977,14 +997,12 @@ const Canvas = () => {
       });
       return;
     }
-
     if (tool === 'selection') {
       const element = getElementAtPosition(clientX, clientY, elements);
       event.target.style.cursor = element
         ? cursorForPosition(element.position)
         : 'default';
     }
-
     if (action === 'drawing') {
       const index = elements.length - 1;
       const { x1, y1 } = elements[index];
@@ -1007,7 +1025,12 @@ const Canvas = () => {
         const height = y2 - y1;
         const newX1 = clientX - offsetX;
         const newY1 = clientY - offsetY;
-        const options = type === 'text' ? { text: selectedElement.text } : {};
+        const options =
+          type === 'text'
+            ? {
+                text: selectedElement.text,
+              }
+            : {};
         updateElement(
           id,
           newX1,
@@ -1030,9 +1053,26 @@ const Canvas = () => {
     }
   };
 
+  const zoomValues = [
+    0, 0.01, 0.01, 0.02, 0.05, 0.05, 0.05, 0.13, 0.17, 0.25, 0.25, 0.25, 0.5,
+    0.5, 0.5, 1, 1, 0,
+  ];
+  const [zoomIndex, setZoomIndex] = useState(10);
+  const onZoomPlus = () => {
+    if (zoomIndex === zoomValues.length - 1) return;
+    setZoomIndex((prevIndex) => prevIndex + 1);
+    setCookie('zoomIndex', zoomIndex + 1, { path: `/canvas/${slug}` });
+    onZoom(zoomValues[zoomIndex]);
+  };
+
+  const onZoomMinus = () => {
+    if (zoomIndex === 0) return;
+    setZoomIndex((prevIndex) => prevIndex - 1);
+    setCookie('zoomIndex', zoomIndex - 1, { path: `/canvas/${slug}` });
+    onZoom(-zoomValues[zoomIndex]);
+  };
+
   const handleMouseUp = (event: any) => {
-    // if (!drawing) return;
-    // drawing = false;
     const { clientX, clientY } = getMouseCoordinates(event);
     if (selectedElement) {
       if (
@@ -1052,20 +1092,25 @@ const Canvas = () => {
       ) {
         const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
         updateElement(id, x1, y1, x2, y2, type, null);
-        // if (!send) {
-        //   return;
-        // }
       }
-
-      client.post(`/api/canvas/${slug}/`, {
-        element: elements[index],
-      });
-      socketRef?.current?.send(
-        JSON.stringify({
-          type: 'elementUpdate',
+      try {
+        client.post(`/api/canvas/${slug}/`, {
           element: elements[index],
-        })
-      );
+        });
+      } catch (error) {
+        console.error(error);
+      }
+      try {
+        socketRef?.current?.send(
+          JSON.stringify({
+            userid: localStorage.getItem('access_token') || '',
+            type: 'elementUpdate',
+            element: elements[index],
+          })
+        );
+      } catch (error) {
+        console.log(error);
+      }
     }
 
     if (action === 'writing') return;
@@ -1076,7 +1121,7 @@ const Canvas = () => {
     setCookie(
       'panOffset',
       { x: panOffset.x, y: panOffset.y },
-      { path: pageURL }
+      { path: `/canvas/${slug}` }
     );
   };
 
@@ -1087,20 +1132,116 @@ const Canvas = () => {
     updateElement(id, x1, y1, null, null, type, { text: event.target.value });
   };
 
-  const onZoom = (increment: any) => {
-    setScale((prevState) => Math.min(Math.max(prevState + increment, 0.1), 5));
-    setCookie('scale', scale + 0.1, { path: pageURL });
+  const onZoom = (increment: number) => {
+    // const targetScale = Math.min(Math.max(scale + increment, 0.01), 5);
+    const targetScale = scale + increment;
+    setCookie('scale', targetScale, { path: `/canvas/${slug}` });
+    const duration = 100;
+    const startTime = performance.now();
+
+    const zoomAnimation = (timestamp: any) => {
+      const elapsedTime = timestamp - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+
+      const currentScale = scale + (targetScale - scale) * progress;
+
+      setScale(currentScale);
+
+      if (progress < 1) {
+        requestAnimationFrame(zoomAnimation);
+      } else {
+        setScale(targetScale);
+      }
+    };
+
+    requestAnimationFrame(zoomAnimation);
   };
 
+  const [gridType, setGridType] = useState('lined');
+
+  const onGridTypeChange = (value: any) => {
+    setCookie('gridType', value, { path: `/canvas/${slug}` });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.classList.remove('dotted-grid');
+    canvas.classList.remove('lined-grid');
+    switch (value) {
+      case 'lined':
+        canvas.classList.add('lined-grid');
+        break;
+      case 'dotted':
+        canvas.classList.add('dotted-grid');
+        break;
+    }
+  };
+
+  useLayoutEffect(() => {
+    onGridTypeChange(gridType);
+  }, [gridType]);
+
+  const uploadFontFamily = (event: any) => {
+    const formData = new FormData();
+    formData.append('file', event.target.files[0]);
+    formData.append('name', event.target.files[0].name);
+    client.post('/api/font/', formData).then(
+      (response) => {
+        console.log(response);
+        // setFontFamily(event.target.files[0].name);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
+  useLayoutEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await client.get('/api/font/');
+        const fontsToLoad = response.data.length;
+        let fontsLoaded = 0;
+        if (fontsToLoad === 0) {
+          setPermission(true);
+        }
+        for (let i = 0; i < response.data.length; i++) {
+          const loadFont = async () => {
+            try {
+              const fontFace = new FontFace(
+                `${response.data[i].name}`,
+                `url(/media/fonts/${response.data[i].file.slice(7)})`
+              );
+              await fontFace.load();
+              document.fonts.add(fontFace);
+              setFonts((prevFonts: any) => [...prevFonts, fontFace]);
+              fontsLoaded++;
+              if (fontsLoaded === fontsToLoad) {
+                setPermission(true);
+              }
+            } catch (error) {
+              console.error('Font loading error:', error);
+            }
+          };
+
+          loadFont();
+        }
+        //wait for fonts to load
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
-    <div style={{ overflow: 'hidden' }}>
+    <div className='canvas-container' style={{ overflow: 'hidden' }}>
+      <title>{canvasData?.title} - Canvas</title>
       <meta
         name='viewport'
         content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height'
       />
-
-      <DisableZoom />
+      {/* <DisableZoom /> */}
       <Sidebar />
+      <Notifications />
       <div className='circular-cursor'></div>
       <div
         style={{
@@ -1143,21 +1284,52 @@ const Canvas = () => {
           onChange={() => handleToolChange('text')}
         />
         <label htmlFor='text'>Text</label>
+        <input
+          type='radio'
+          id='eraser'
+          checked={tool === 'eraser'}
+          onChange={() => handleToolChange('eraser')}
+        />
+        <label htmlFor='eraser'>Eraser</label>
+        <select value={gridType} onChange={(e) => setGridType(e.target.value)}>
+          <option value='lined'>Lined</option>
+          <option value='dotted'>Dotted</option>
+          <option value='none'>None</option>
+        </select>
+        <input
+          type='file'
+          accept='.woff, .woff2, .ttf, .otf'
+          id='fontFamily'
+          onChange={uploadFontFamily}
+        />
+        <label htmlFor='fontFamily'>Upload Font</label>
       </div>
       <div style={{ position: 'fixed', zIndex: 2, bottom: 0, padding: 10 }}>
-        <button onClick={() => onZoom(-0.1)}>-</button>
+        <button onClick={onZoomMinus}>-</button>
         <span
           onClick={() => {
-            setScale(1);
-            setCookie('scale', 1, { path: pageURL });
+            onZoom(1 - scale);
+            setZoomIndex(10);
+            setCookie('zoomIndex', 10, { path: `/canvas/${slug}` });
           }}
         >
           {new Intl.NumberFormat('en-GB', { style: 'percent' }).format(scale)}{' '}
         </span>
-        <button onClick={() => onZoom(0.1)}>+</button>
+        <button onClick={onZoomPlus}>+</button>
         <span> </span>
         <button onClick={undo}>Undo</button>
         <button onClick={redo}>Redo</button>
+        <span> </span>
+        {/* <button onClick={handleDownload}>Download</button> */}
+        <span> </span>
+        <button
+          onClick={() => {
+            setPanOffset({ x: 0, y: 0 });
+            setCookie('panOffset', { x: 0, y: 0 }, { path: `/canvas/${slug}` });
+          }}
+        >
+          Reset
+        </button>
       </div>
       {action === 'writing' ? (
         <textarea
@@ -1171,12 +1343,13 @@ const Canvas = () => {
               scaleOffset.y,
             left:
               selectedElement.x1 * scale + panOffset.x * scale - scaleOffset.x,
-            font: `${24 * scale}px sans-serif`,
+            font: `${fontSize * scale}px ${fontFamily}`,
+            color: fontColor,
             margin: 0,
             padding: 0,
             border: 0,
             outline: 0,
-            resize: 'both',
+            resize: 'none',
             overflow: 'hidden',
             whiteSpace: 'pre',
             background: 'transparent',
@@ -1193,22 +1366,45 @@ const Canvas = () => {
         onMouseUp={handleMouseUp}
         onTouchStart={handleMouseDown}
         onTouchMove={handleMouseMove}
-        onTouchCancel={handleMouseUp}
+        onTouchEnd={handleMouseUp}
         style={{ position: 'absolute', zIndex: 1 }}
       />
-
       <div ref={colorsRef} className='color-picker'>
-        <input id='color' onChange={onColorUpdate} type='color' />
+        <input
+          id='stroke-color'
+          value={strokeColor}
+          onChange={onStrokeColorUpdate}
+          type='color'
+        />
+        <input
+          id='font-color'
+          value={fontColor}
+          onChange={handleFontColorChange}
+          type='color'
+        />
       </div>
-      <input
-        onChange={handleStrokeChange}
-        type='range'
-        id='stroke-width'
-        min='3'
-        max='25'
-        step='0.5'
-        value={strokeSize}
-      />
+      <div className='slider'>
+        <input
+          onChange={handleStrokeSizeChange}
+          type='range'
+          id='stroke-width'
+          min='3'
+          max='25'
+          step='0.5'
+          value={strokeSize}
+        />
+      </div>
+      <div className='slider'>
+        <input
+          onChange={handleFontSizeChange}
+          type='range'
+          id='font-size'
+          min='24'
+          max='100'
+          step='2'
+          value={fontSize}
+        />
+      </div>
       <object
         style={{
           width: 25,
@@ -1220,6 +1416,25 @@ const Canvas = () => {
         type='image/svg+xml'
         className='cursor'
       ></object>
+      <div className='list-choice'>
+        <div className='list-choice-title'>{fontFamily}</div>
+        <div className='list-choice-objects'>
+          {fonts.map((font: any, index: any) => (
+            <label
+              style={{ fontFamily: font.family }}
+              onClick={() => {
+                setFontFamily(font.family);
+                setCookie('fontFamily', font.family, {
+                  path: `/canvas/${slug}`,
+                });
+              }}
+            >
+              <input type='radio' name='month' key={index} />
+              <span>{font.family}</span>
+            </label>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

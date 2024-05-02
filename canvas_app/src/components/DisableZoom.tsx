@@ -18,12 +18,14 @@ function DisableZoom() {
     };
 
     // Add event listeners when the component mounts
-    window.addEventListener('wheel', handleWheel);
+    window.addEventListener('wheel', handleWheel, { passive: false } as any);
     window.addEventListener('keydown', handleKeyDown);
 
     // Clean up by removing event listeners when the component unmounts
     return () => {
-      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('wheel', handleWheel, {
+        passive: false,
+      } as any);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);

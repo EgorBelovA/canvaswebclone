@@ -7,6 +7,8 @@ from .forms import *
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView
+from rest_framework.generics import UpdateAPIView
+
 from django.shortcuts import render, redirect, reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -60,6 +62,7 @@ class UserLogout(APIView):
             #    return Response(status=status.HTTP_400_BAD_REQUEST)
         
 
+
 class UserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
@@ -70,7 +73,22 @@ class UserView(APIView):
             return Response({'user': serializer.data}, status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
+    def put(self, request):
+        serializer = UserSerializer(request.user, data=request.data)
+        if serializer.is_valid():
+            print(serializer)
+            # serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class UserApiUpdate(UpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
 
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
 
 # class RegisterUser(DataMixin, CreateView):
 #     form_class = CustomUserCreationForm

@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+    # 'debug_toolbar',
 
     'social_django',
     'allauth',
@@ -33,7 +34,6 @@ INSTALLED_APPS = [
     'django_email_verification',
 
     'api.apps.ApiConfig',
-    # 'canvas_app.apps.CanvasAppConfig',
     'account_app.apps.AccountAppConfig',
 ]
 
@@ -48,7 +48,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
+
+# INTERNAL_IPS = ["127.0.0.1"]
 
 ROOT_URLCONF = 'canvas.urls'
 
@@ -202,6 +205,7 @@ STATICFILES = [STATIC_DIR]
 STATICFILES_DIRS = (
     BASE_DIR.joinpath('canvas_app', 'dist'),
     BASE_DIR.joinpath('api'),
+    BASE_DIR.joinpath('media/fonts'),
 )
 
 SITE_ID = 1
@@ -237,7 +241,7 @@ def email_verified_callback(user):
 
 # Global Package Settings
 EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS')
-EMAIL_PAGE_DOMAIN = 'http://127.0.0.1:8001/'  # mandatory (unless you use a custom link)
+EMAIL_PAGE_DOMAIN = os.environ.get('EMAIL_PAGE_DOMAIN')  # mandatory (unless you use a custom link)
 EMAIL_MULTI_USER = False  # optional (defaults to False)
 
 # Email Verification Settings (mandatory for email sending)

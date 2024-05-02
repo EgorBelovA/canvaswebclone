@@ -1,6 +1,6 @@
 // import { render } from 'react-dom';
 import * as React from 'react';
-import '../scss/partials/_home.scss';
+import '../scss/components/home.scss';
 import Navbar from './Header';
 import Footer from './Footer';
 import BackgroundButterflies from './BackgroundButterflies';
@@ -24,7 +24,25 @@ const HomePage: React.FC = () => {
         <a href='/dashboard/' id='main-quote'>
           The outside world is a reflection of the inside one
         </a>
-        <Footer />
+        <div>
+          <div
+            style={{
+              fontFamily: 'Breath_Demo',
+              color: 'white',
+              textAlign: 'center',
+              textDecoration: 'none',
+            }}
+          >
+            <a
+              style={{ textDecoration: 'none', color: 'white' }}
+              href='/pixel-battle/'
+              id='pixel-battle'
+            >
+              PIXEL BATTLE
+            </a>
+          </div>
+          <Footer />
+        </div>
       </div>
     </div>
   );

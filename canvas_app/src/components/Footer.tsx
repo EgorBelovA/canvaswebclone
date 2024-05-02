@@ -19,18 +19,18 @@ const Navbar: React.FC = () => {
       <div className='footer-copyright'>
         <div>Copyright © 2024 Canvas. All Rights Reserved.</div>
         <div>
-          <a href='/legal/privacy-policy'>Privacy Policy</a>
+          <a href='/legal/privacy-policy/'>Privacy Policy</a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
-          <a href='/legal/terms-and-conditions'>Terms of Use</a>
+          <a href='/legal/terms-and-conditions/'>Terms of Use</a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
           <a href='/legal/'>Legal</a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
           <a href='/pricing/'>Pricing</a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
-          <a href='/contact/'>Contact</a>
+          <a href='/contacts/'>Contacts</a>
         </div>
       </div>
-      <a href='/choose-county-region' className='footer-region'>
+      <a href='/choose-county-region/' className='footer-region'>
         {region}
       </a>
     </div>

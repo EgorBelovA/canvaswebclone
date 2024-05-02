@@ -11,3 +11,8 @@ class CanvasElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = CanvasElement 
         fields = ('__all__')
+
+class FontSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Font
+        fields = ('__all__')

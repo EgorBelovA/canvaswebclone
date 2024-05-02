@@ -3,7 +3,7 @@ import Footer from './Footer';
 import Faq from './Faq';
 import PricingCard from './PricingCard';
 import '../scss/components/_pricing.scss';
-import '../scss/partials/_home.scss';
+import '../scss/components/home.scss';
 import { useState } from 'react';
 
 const Pricing = () => {

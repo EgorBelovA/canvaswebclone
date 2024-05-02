@@ -1,0 +1,256 @@
+// body,
+// html {
+//   height: 100%;
+//   overflow: hidden;
+//   margin: 0;
+// }
+
+body,
+html {
+  background-color: #fff;
+}
+
+$dot-space: 30px;
+#canvas {
+  overflow: hidden !important;
+  background-color: #f0f0f0 !important;
+  display: grid;
+
+  background-position-x: var(--dot-x);
+  background-position-y: var(--dot-y);
+
+  background-size: var(--dot-space) var(--dot-space),
+    var(--dot-space) var(--dot-space),
+    calc(var(--dot-space) * 5) calc(var(--dot-space) * 5),
+    calc(var(--dot-space) * 5) calc(var(--dot-space) * 5);
+  cursor: url('/pen_cursor.svg') 4 20, auto;
+}
+
+.dotted-grid {
+  background-image: radial-gradient(
+    circle,
+    lightgray 1.5px,
+    rgba(0, 0, 0, 0) 0px
+  );
+}
+
+.lined-grid {
+  background-image: linear-gradient(to right, lightgray 1px, transparent 1px),
+    linear-gradient(to bottom, lightgray 1px, transparent 1px),
+    linear-gradient(to right, lightgray 2px, transparent 1px),
+    linear-gradient(to bottom, lightgray 2px, transparent 1px);
+}
+
+// #canvas {
+//   overflow: hidden !important;
+//   cursor: url('/pen_cursor.svg') 4 20, auto;
+
+//   // background-color: #f0f0f0 !important;
+//   --dot-bg: #f0f0f0;
+//   --dot-color: lightgray;
+//   --dot-size: 2px;
+//   background: linear-gradient(
+//         90deg,
+//         var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+//         transparent 1%
+//       )
+//       center / var(--dot-space) var(--dot-space),
+//     linear-gradient(
+//         var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+//         transparent 1%
+//       )
+//       center / var(--dot-space) var(--dot-space),
+//     var(--dot-color);
+// }
+
+.color-picker {
+  position: absolute;
+  bottom: 100px;
+  left: 20px;
+  z-index: 10;
+}
+
+#color {
+  width: 20px;
+  outline: none;
+  color: #fff;
+  caret-color: #fff;
+  font-size: 16px !important;
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+}
+
+// input * {
+//   background-color: red !important;
+// }
+
+.circular-cursor {
+  background-color: transparent;
+  border: 0.3px solid #999999;
+  border-radius: 50%;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+$cursorColor: #0072ce !default;
+
+.cursor {
+  position: absolute;
+  will-change: transform;
+
+  @media (hover: none) {
+    display: none;
+  }
+}
+
+.list-choice {
+  width: 300px;
+  margin: 1em auto;
+  position: relative;
+  cursor: pointer;
+  position: absolute;
+  z-index: 100;
+  // overflow-y: scroll;
+  // height: 100px;
+}
+.list-choice input[type='radio'] {
+  position: absolute;
+  left: -9999px;
+}
+
+.list-choice-title {
+  width: 100%;
+  display: block;
+  background: #fff;
+  text-align: center;
+  padding: 0.55em 1em;
+  box-sizing: border-box;
+  color: #000;
+  text-shadow: 0 1px 0 #cacaca;
+  border-radius: 0.2em;
+}
+.list-choice:hover .list-choice-title {
+  border-radius: 0.2em 0.2em 0 0;
+}
+.list-choice-objects label:nth-last-of-type(1) span {
+  border-radius: 0 0 0.2em 0.2em;
+}
+.list-choice input[type='radio'] + span {
+  color: #000;
+  background: #ffffff;
+  padding: 0.55em 1em;
+  display: block;
+  text-align: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  width: 100%;
+}
+.list-choice-objects {
+  position: absolute;
+  top: 0;
+  padding-top: 2.1em;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  max-height: 0;
+  transition: all 250ms ease;
+}
+.list-choice:hover .list-choice-objects input[type='radio'] + span {
+  position: relative;
+  top: 0;
+  transition: all 250ms ease-in-out;
+}
+.list-choice:hover input[type='radio'] + span:hover {
+  background: #bbb;
+}
+.list-choice:hover input[type='radio']:checked + span:hover {
+  background: #edbfdb;
+}
+.list-choice input[type='radio']:checked + span {
+  background: #edbfdb;
+  position: absolute;
+  top: 0em;
+  border-radius: 0.2em;
+}
+.list-choice:hover input[type='radio']:checked + span {
+  border-radius: 0;
+}
+.list-choice:hover
+  .list-choice-objects
+  label:nth-last-of-type(1)
+  input[type='radio']:checked
+  + span {
+  border-radius: 0 0 0.2em 0.2em;
+}
+
+.list-choice:hover .list-choice-objects {
+  max-height: 540px;
+}
+
+#font-size {
+  top: 30px;
+}
+
+.slider {
+  z-index: 100;
+  position: absolute;
+  right: 0;
+  width: 100px;
+
+  input {
+    --c: #20190c; /* active color */
+    --g: 2px; /* the gap */
+    --l: 3px; /* line thickness*/
+    --s: 10px; /* thumb size*/
+    width: 100px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 100;
+    height: var(--s); /* needed for Firefox*/
+    --_c: color-mix(in srgb, var(--c), #000 var(--p, 0%));
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: none;
+    cursor: pointer;
+    --_b: var(--s);
+    overflow: hidden;
+  }
+  input:focus-visible,
+  input:hover {
+    --p: 25%;
+  }
+
+  /* chromium */
+  input[type='range' i]::-webkit-slider-thumb {
+    height: var(--s);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-shadow: 0 0 0 var(--_b, var(--l)) inset var(--_c);
+    border-image: linear-gradient(90deg, var(--_c) 50%, #ababab 0) 0 1 /
+      calc(50% - var(--l) / 2) 100vw/0 calc(100vw + var(--g));
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  /* Firefox */
+  input[type='range']::-moz-range-thumb {
+    height: var(--s);
+    width: var(--s);
+    background: none;
+    border-radius: 50%;
+    box-shadow: 0 0 0 var(--_b, var(--l)) inset var(--_c);
+    border-image: linear-gradient(90deg, var(--_c) 50%, #ababab 0) 0 1 /
+      calc(50% - var(--l) / 2) 100vw/0 calc(100vw + var(--g));
+    -moz-appearance: none;
+    appearance: none;
+  }
+  @supports not (color: color-mix(in srgb, red, red)) {
+    input {
+      --_c: var(--c);
+    }
+  }
+}

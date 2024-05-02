@@ -90,7 +90,6 @@ services:
     container_name: canvas-app
     build:
       context: ./canvas_app
-    restart: always
     ports:
       - '3000:3000'
 

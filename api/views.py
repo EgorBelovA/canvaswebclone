@@ -32,7 +32,6 @@ class CanvasView(APIView):
         slug = kwargs.get("slug")
         canvas = Canvas.objects.get(slug=slug) 
         element = request.data.get("element", None)
-        print(element.get("id"))
         if element is not None:
             if CanvasElement.objects.filter(element=element).exists():
                 element_object = CanvasElement.objects.get(element=element)
@@ -70,6 +69,24 @@ class AllCanvasView(APIView):
     #     serializer = CanvasSerializer(data=request.data)
     #     if serializer.is_valid(raise_exception=True):
     #         serializer.save()
+
+
+
+class FontUploadView(APIView):
+    authentication_classes = [SessionAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+    def post(self, request):
+        fs = FileSystemStorage(location='media/fonts')
+        file_name = fs.save(f"{uuid.uuid4()}.{request.data['file'].name.split('.')[-1]}", request.data['file'])
+        request.data['file'] = fs.url(file_name)
+        obj = Font.objects.create(name=request.data['name'].split('.')[0], file=file_name, owner=request.user)
+        obj.save()
+        return Response(status=status.HTTP_201_CREATED)
+    
+    def get(self, request):
+        queryset = Font.objects.filter(owner=request.user)
+        serializer = FontSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 def pageError(request, exception):

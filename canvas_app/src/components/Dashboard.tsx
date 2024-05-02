@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import '../scss/partials/_dashboard.scss';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import '../scss/components/dashboard.scss';
+import DashboardHeader from './DashboardHeader';
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
 axios.defaults.xsrfCookieName = 'csrftoken';
@@ -13,11 +14,14 @@ const client = axios.create({
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [userData, setUserData] = useState<any>({});
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     client
       .get(`/api/user/`)
       .then((e) => {
+        setUserData(e.data.user);
+        console.log(e.data.user);
         client
           .post('/api/token/', {
             email: e.data.user.email,
@@ -31,8 +35,7 @@ const Dashboard = () => {
             // ] = `Bearer ${data['access']}`;
           });
       })
-      .catch((e) => {
-        console.log('123', e);
+      .catch((_) => {
         navigate('/login/');
       });
   }, []);
@@ -53,30 +56,34 @@ const Dashboard = () => {
     });
   }, []);
 
-  const CanvasHandler = (slug: any) => {
-    navigate(`/canvas/${slug}`);
-  };
+  // const CanvasHandler = (e: any, slug: any) => {
+  //   console.log(e);
+  //   e.href = '/canvas/' + slug;
+  //   // navigate(`/canvas/${slug}`, { replace: true });
+  // };
 
   return (
     <div>
-      <h1 className='title'>Dashboard</h1>
-      <form onSubmit={(e) => submitLogout(e)}>
-        <button className='logout-button' type='submit'>
-          Log out
-        </button>
-      </form>
+      <DashboardHeader avatar={userData.avatar} />
+      <div>
+        <h1 className='title'>{userData.first_name}</h1>
+        <h2 className='title'>{userData.email}</h2>
+      </div>
+      <div>
+        <form onSubmit={(e) => submitLogout(e)}>
+          <button className='logout-button' type='submit'>
+            Log out
+          </button>
+        </form>
+      </div>
       <div className='cards-container'>
         {canvases.map((item: any) => (
-          <div
-            key={item.id}
-            className='card'
-            onClick={() => CanvasHandler(item.slug)}
-          >
+          <a key={item.id} className='card' href={'/canvas/' + item.slug}>
             <div className='image-container'>
               <img src={item.image} alt={item.title} className='card-image' />
             </div>
             <div className='card-title'>{item.title}</div>
-          </div>
+          </a>
         ))}
       </div>
     </div>

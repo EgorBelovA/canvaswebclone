@@ -20,6 +20,8 @@ urlpatterns = [
     path('login/', UserLogin.as_view(), name='api_login'),
     path('logout/', UserLogout.as_view(), name='api_logout'),
     path('user/', UserView.as_view(), name='user'),
+    path('user/<pk>/', UserApiUpdate.as_view(), name='user_update'),
+    path('font/', FontUploadView.as_view(), name='font_upload'),
 
 
     path('google/login/', google_login, name='login'),

@@ -17,6 +17,7 @@ def index_view(request):
     return render(request, 'dist/index.html')
 
 urlpatterns = [
+    # path("__debug__/", include("debug_toolbar.urls")),
 
     path('accounts/', include('social_django.urls', namespace='social')),
     path('email/', include(email_urls), name='email-verification'),
@@ -35,7 +36,9 @@ urlpatterns = [
     path('legal/terms-and-conditions/', index_view, name='terms-and-conditions'),
     path('legal/', index_view, name='legal'),
     path('pricing/', index_view, name='pricing'),
-    path('contact/', index_view, name='contact'),
+    path('contacts/', index_view, name='contact'),
+    path('pixel-battle/', index_view, name='pixel-battle'),
+    path('profile/', index_view, name='profile'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 

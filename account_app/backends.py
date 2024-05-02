@@ -50,9 +50,10 @@ class GoogleAuthBackend(BaseBackend):
                     return user
                 except CustomUser.DoesNotExist:
                     first_name = google_user_details.json().get('given_name')
-                    serializer = UserRegistrationSerializer(data={'email': email, 'first_name': first_name, 'password': None})
+                    avatar = google_user_details.json().get('picture')
+                    serializer = UserRegistrationSerializer(data={'email': email, 'first_name': first_name, 'password': None, 'avatar': avatar})
                     if serializer.is_valid(raise_exception=True):
-                        user = serializer.create({'email': email, 'first_name': first_name, 'password': None})
+                        user = serializer.create({'email': email, 'first_name': first_name, 'password': None, 'avatar': avatar})
                         return user
                     else:
                         return None

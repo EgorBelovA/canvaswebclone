@@ -12,7 +12,9 @@ import TermsOfUse from './TermsOfUse';
 import CountryRegion from './CountyRegion';
 import Legal from './Legal';
 import Pricing from './Pricing';
-import Contact from './Contact';
+import Contacts from './Contacts';
+import PixelBattle from './PixelBattle';
+import UserProfile from './UserProfile';
 
 export default class HomePage extends Component {
   constructor(props: any) {
@@ -29,6 +31,7 @@ export default class HomePage extends Component {
           <Route path='dashboard' element={<Dashboard />} />
           <Route element={<PrivateRoutes />}>
             <Route path='canvas/:slug/' element={<Canvas />} />
+            <Route path='profile' element={<UserProfile />} />
           </Route>
           <Route path='legal/privacy-policy' element={<PrivacyPolicy />} />
           <Route path='legal/terms-and-conditions' element={<TermsOfUse />} />
@@ -36,7 +39,8 @@ export default class HomePage extends Component {
           <Route path='legal' element={<Legal />} />
           <Route path='email-verification' element={<EmailVerification />} />
           <Route path='pricing' element={<Pricing />} />
-          <Route path='contact' element={<Contact />} />
+          <Route path='contacts' element={<Contacts />} />
+          <Route path='pixel-battle' element={<PixelBattle />} />
         </Routes>
       </Router>
     );

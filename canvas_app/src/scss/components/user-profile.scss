@@ -1,0 +1,57 @@
+.edit-button {
+  color: #fff;
+}
+
+.crop-area {
+  box-shadow: 0px 0px 0px 2000px rgba(29, 28, 45, 0.75);
+  -webkit-box-shadow: 0px 0px 0px 2000px rgba(29, 28, 45, 0.75);
+  -moz-box-shadow: 0px 0px 0px 2000px rgba(29, 28, 45, 0.75);
+}
+
+$offset: -3px;
+@mixin resizeHandle() {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: #000;
+  z-index: 9999;
+}
+
+.resize-handle-nesw-top {
+  @include resizeHandle();
+  cursor: nesw-resize;
+  top: $offset;
+  right: $offset;
+}
+
+.resize-handle-nwse-top {
+  @include resizeHandle();
+  cursor: nwse-resize;
+  top: $offset;
+  left: $offset;
+}
+
+.resize-handle-nesw-bottom {
+  @include resizeHandle();
+  cursor: nesw-resize;
+  bottom: $offset;
+  left: $offset;
+}
+
+.resize-handle-nwse-bottom {
+  @include resizeHandle();
+  cursor: nwse-resize;
+  bottom: $offset;
+  right: $offset;
+}
+
+// style={{
+//     position: 'absolute',
+//     width: '5px',
+//     height: '5px',
+//     backgroundColor: '#000',
+//     cursor: 'nwse-resize',
+//     top: 0,
+//     left: 0,
+//     zIndex: 9999,
+//   }}

@@ -1,9 +1,9 @@
 import '../scss/partials/_sidebar.scss';
 // import { useState } from 'react';
 import ButtonSidebar from './ButtonSidebar';
-import Cursor from '../assets/cursor.svg';
-import Pen from '../assets/pen.svg';
-import Shapes from '../assets/shapes.svg';
+import Cursor from '../../public/icons/cursor.svg';
+import Pen from '../../public/icons/pen.svg';
+import Shapes from '../../public/icons/shapes.svg';
 
 const Sidebar = () => {
   //   const [isPanelVisible, setIsPanelVisible] = useState(false);

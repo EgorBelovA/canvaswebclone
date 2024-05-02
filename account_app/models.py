@@ -10,8 +10,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, blank=True)
     password = models.CharField(max_length=100, unique=False, null=True, blank=True)
     username = models.CharField(max_length=50, unique=False, null=True, blank=True)
-    # avatar = models.ImageField(max_length=255, null=True, upload_to='images/', blank=True)
-    # image = models.ImageField(max_length=255, null=True, upload_to='images/', blank=True)
+    avatar = models.FileField(null=True, blank=True, upload_to='avatars/')
 
     # def clean_password2(self):
     #     password1 = self.cleaned_data['password1']
@@ -29,3 +28,18 @@ class CustomUser(AbstractUser):
 
     # def __str__(self):
     #     return self.name
+
+class SubscriptionPlan(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    billing_interval = models.CharField(max_length=20, choices=(
+        ('monthly', 'Monthly'),
+    ))
+
+    def __str__(self):
+        return self.name
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    subscription = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True)

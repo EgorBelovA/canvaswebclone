@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../scss/partials/user_form.scss';
+import '../scss/components/user_form.scss';
 import { useNavigate } from 'react-router-dom';
 // import G from './google_logo.svg';
 

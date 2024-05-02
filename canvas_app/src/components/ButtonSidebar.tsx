@@ -11,7 +11,7 @@ function ButtonSidebar(props: any) {
     <div className='button-sidebar'>
       <object
         type='image/svg+xml'
-        data={`/static/${props.icon}`}
+        data={`${props.icon}`}
         width='24px'
         id='object'
       />
