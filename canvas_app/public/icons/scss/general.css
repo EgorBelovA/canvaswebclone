@@ -1,0 +1,41 @@
+/* .left-wing {
+  fill: #d9d9d9;
+  stroke: #d9d9d9;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: left-wing-animation 2s ease forwards;
+}
+
+.right-wing {
+  fill: #e8e8e8;
+  stroke: #e8e8e8;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: right-wing-animation 2s ease forwards;
+}
+
+@keyframes left-wing-animation {
+  0% {
+    fill: #d9d9d9;
+    stroke: #d9d9d9;
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    fill: #000;
+    stroke: #000;
+    stroke-dashoffset: 1000;
+  }
+}
+
+@keyframes right-wing-animation {
+  0% {
+    fill: #e8e8e8;
+    stroke: #e8e8e8;
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    fill: #000;
+    stroke: #000;
+    stroke-dashoffset: 1000;
+  }
+} */

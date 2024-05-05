@@ -6,6 +6,11 @@ from .serializers import *
 # from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import login
+from django.core.files.storage import FileSystemStorage
+from django.core.files.base import ContentFile
+import os
+import canvas.settings as settings
+import uuid
 
 
 class GoogleAuthBackend(BaseBackend):
@@ -50,8 +55,18 @@ class GoogleAuthBackend(BaseBackend):
                     return user
                 except CustomUser.DoesNotExist:
                     first_name = google_user_details.json().get('given_name')
+
                     avatar = google_user_details.json().get('picture')
-                    serializer = UserRegistrationSerializer(data={'email': email, 'first_name': first_name, 'password': None, 'avatar': avatar})
+                    response = requests.get(avatar, stream=True)                    
+                    response.raw.decode_content = True
+                    avatar_content = response.content
+                    ffs = FileSystemStorage(location='media/avatars')
+                    avatar_file = ContentFile(avatar_content)
+                    file_name = ffs.save(f"{uuid.uuid4()}.jpg", avatar_file)
+                    avatar = ffs.url("avatars/" + file_name)[6:]
+
+                    print(first_name, email, avatar)
+                    serializer = UserRegistrationSerializer(data={'email': email, 'first_name': first_name, 'password': None})
                     if serializer.is_valid(raise_exception=True):
                         user = serializer.create({'email': email, 'first_name': first_name, 'password': None, 'avatar': avatar})
                         return user

@@ -23,6 +23,7 @@ class Canvas(models.Model):
     time_updated = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to='canvas_image/', default=random_default_image, blank=True, null=True)
     elements = models.ManyToManyField('CanvasElement', blank=True, related_name='element_canvas')
+    fonts = models.ManyToManyField('Font', blank=True, related_name='font_canvas', db_index=True)
 
 
     class Meta:
@@ -50,7 +51,7 @@ class Notification(models.Model):
 
 class Font(models.Model):
     owner = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE, related_name='font_owner', db_index=True)
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=75)
     file = models.FileField(upload_to='fonts/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

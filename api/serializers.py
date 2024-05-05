@@ -1,9 +1,18 @@
 from rest_framework import serializers
 from .models import *
+from account_app.serializers import *
+
+class FontSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Font
+        fields = ('__all__')
 
 class CanvasSerializer(serializers.ModelSerializer):
+    permitted_users = UserSerializer(many=True)
+    fonts = FontSerializer(many=True)
+
     class Meta:
-        model = Canvas 
+        model = Canvas
         fields = ('__all__')
 
 
@@ -12,7 +21,3 @@ class CanvasElementSerializer(serializers.ModelSerializer):
         model = CanvasElement 
         fields = ('__all__')
 
-class FontSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Font
-        fields = ('__all__')

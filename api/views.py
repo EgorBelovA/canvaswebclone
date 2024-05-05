@@ -13,7 +13,26 @@ from django.core.files.storage import FileSystemStorage
 import base64
 import PIL
 import json
+from rest_framework.generics import UpdateAPIView
 
+
+class CanvasViewApiUpdate(UpdateAPIView):
+    authentication_classes = [SessionAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+    lookup_field = 'slug'
+    serializer_class = CanvasSerializer
+    queryset = Canvas.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        canvas = Canvas.objects.get(slug=kwargs.get("slug"))
+        font_name = data.get('font', None)
+        font = Font.objects.get(name=font_name)
+        if font is not None:
+            canvas.fonts.add(font)
+        canvas.save()
+
+        return Response(status=status.HTTP_200_OK)
 
 # @permission_classes([IsAuthenticated])
 class CanvasView(APIView):
@@ -81,6 +100,7 @@ class FontUploadView(APIView):
         request.data['file'] = fs.url(file_name)
         obj = Font.objects.create(name=request.data['name'].split('.')[0], file=file_name, owner=request.user)
         obj.save()
+
         return Response(status=status.HTTP_201_CREATED)
     
     def get(self, request):

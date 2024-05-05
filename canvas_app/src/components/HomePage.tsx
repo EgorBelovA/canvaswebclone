@@ -6,7 +6,7 @@ import SignUp from './SignUp';
 import Login from './Login';
 import EmailVerification from './EmailVerification';
 import Dashboard from './Dashboard';
-import PrivateRoutes from './PrivateRoutes';
+// import PrivateRoutes from './PrivateRoutes';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsOfUse from './TermsOfUse';
 import CountryRegion from './CountyRegion';
@@ -29,10 +29,10 @@ export default class HomePage extends Component {
           <Route path='signup' element={<SignUp />} />
           <Route path='login' element={<Login />} />
           <Route path='dashboard' element={<Dashboard />} />
-          <Route element={<PrivateRoutes />}>
-            <Route path='canvas/:slug/' element={<Canvas />} />
-            <Route path='profile' element={<UserProfile />} />
-          </Route>
+          {/* <Route element={<PrivateRoutes />}> */}
+          <Route path='canvas/:slug/' element={<Canvas />} />
+          <Route path='profile' element={<UserProfile />} />
+          {/* </Route> */}
           <Route path='legal/privacy-policy' element={<PrivacyPolicy />} />
           <Route path='legal/terms-and-conditions' element={<TermsOfUse />} />
           <Route path='choose-county-region' element={<CountryRegion />} />

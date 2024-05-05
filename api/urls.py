@@ -16,13 +16,18 @@ urlpatterns = [
     #API
     path('canvas/', AllCanvasView.as_view(), name='canvas_view'),
     path('canvas/<slug>/', CanvasView.as_view(), name='canvas_view'),
+    path('canvas/update/<slug>/', CanvasViewApiUpdate.as_view(), name='canvas_update'),
     path('signup/', UserRegister.as_view(), name='api_auth'),
     path('login/', UserLogin.as_view(), name='api_login'),
     path('logout/', UserLogout.as_view(), name='api_logout'),
     path('user/', UserView.as_view(), name='user'),
     path('user/<pk>/', UserApiUpdate.as_view(), name='user_update'),
+    path('user-profile/<pk>/', UserProfileApiUpdate.as_view(), name='user_profile_update'),
     path('font/', FontUploadView.as_view(), name='font_upload'),
 
+    #Payment
+    path('create-payment/', CreatePaymentView.as_view()),
+    path('yookassa-webhook/', GetWebhookView.as_view(), name='yookassa_webhook'),
 
     path('google/login/', google_login, name='login'),
     path('google/callback/', google_callback, name='login_callback'),

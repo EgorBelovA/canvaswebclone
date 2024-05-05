@@ -1,25 +1,27 @@
-from django.shortcuts import render
 from .models import *
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.views import LoginView
 from .utils import *
 from .forms import *
-from django.contrib.auth import get_user_model
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView
 from rest_framework.generics import UpdateAPIView
-
-from django.shortcuts import render, redirect, reverse
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django_email_verification import send_email
+from django.shortcuts import redirect
+from django.contrib.auth import login, logout
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import *
 from rest_framework.authentication import SessionAuthentication
-from rest_framework_simplejwt.tokens import RefreshToken
-
 from rest_framework import permissions, status
+from django.shortcuts import redirect
+from yookassa import Configuration
+from yookassa.domain.common.user_agent import Version
+from django.http.response import HttpResponseRedirect, HttpResponse
+from django.shortcuts import redirect
+from . import constants
+from django.contrib.auth import login
+from .backends import GoogleAuthBackend
+from django.contrib import messages
+from yookassa import Configuration, Payment, Webhook
+import uuid
+
+
 
 class UserRegister(APIView):
     permission_classes = [permissions.AllowAny,]
@@ -82,6 +84,8 @@ class UserView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+#set only patch method
+
 class UserApiUpdate(UpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -90,50 +94,14 @@ class UserApiUpdate(UpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
-# class RegisterUser(DataMixin, CreateView):
-#     form_class = CustomUserCreationForm
-#     # template_name = 'frontend/signup.html'
-#     success_url = reverse_lazy('canvas')
+class UserProfileApiUpdate(UpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
 
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         c_def = self.get_user_context(title="Registration")
-#         return dict(list(context.items()) + list(c_def.items()))
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
 
-#     def form_valid(self, form):
-#         user = form.save()
-#         user.is_active = False
-#         send_email(user)
-#         login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
-#         return redirect('email-verification-sent')
-
-# class LoginUser(DataMixin, LoginView):
-#     form_class = AuthenticationForm
-#     template_name = 'frontend/login.html'
-#     success_url = reverse_lazy('canvas')
-
-#     def get_context_data(self, *, object_list = None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         c_def = self.get_user_context(title="Login")
-#         return dict(list(context.items()) + list(c_def.items()))
-
-# def logout_user(request):
-#     logout(request)
-#     return redirect('login')
-
-# def email_verification(request):
-#     return render(request, 'email/email-verification-sent.html')
-
-
-
-
-from django.http.response import HttpResponseRedirect, HttpResponse
-from django.shortcuts import redirect
-from . import constants
-from django.contrib.auth import authenticate, login
-from .backends import GoogleAuthBackend
-from django.contrib import messages
-import rest_framework
 
 def google_login(request):
     return HttpResponseRedirect(constants.GOOGLE_LOGIN_REDIRECT_URI)
@@ -150,3 +118,71 @@ def google_callback(request):
         else:
             messages.error(request, "You are not Authorized to Login ")
         return redirect('dashboard')
+    
+
+
+
+from rest_framework import viewsets, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Plan, Subscription
+from .serializers import PlanSerializer, SubscriptionSerializer
+from yookassa import Configuration
+from django.shortcuts import get_object_or_404
+
+Configuration.account_id = "your_shop_id"
+Configuration.secret_key = "your_secret_key"
+
+
+
+class PlanViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Plan.objects.all()
+    serializer_class = PlanSerializer
+
+
+
+Configuration.account_id = os.getenv('YOOKASSA_ACCOUNT_ID')
+Configuration.secret_key = os.getenv('YOOKASSA_SECRET_KEY')
+Configuration.configure_user_agent(
+    framework=Version('Django', '5.0.3'),
+    cms=Version('Wagtail', '2.6.2'),
+    module=Version('Y.CMS', '0.0.1')
+)
+
+import json
+from django.http import HttpResponse
+from yookassa.domain.notification import WebhookNotification
+
+
+class GetWebhookView(APIView):
+    def post(self, request):
+        event_json = json.loads(request.body)
+        notification_object = WebhookNotification(event_json)
+        event = notification_object.object
+        return HttpResponse(status=200)
+
+
+
+class CreatePaymentView(APIView):
+    def post(self, request):
+        amount = request.data.get('amount')
+        description = request.data.get('description')
+
+        payment = Payment.create({
+            "amount": {
+                "value": "2.00",
+                "currency": "RUB"
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": "http:127.0.0.1:8001/dashboard"
+            },
+            "capture": True,
+            "description": "Заказ №1"
+        }, uuid.uuid4())
+
+
+        return Response({'payment_form_url': payment})
+
+
+

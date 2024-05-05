@@ -5,10 +5,10 @@ import {
   useLayoutEffect,
   useCallback,
 } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import rough from 'roughjs';
 import getStroke from 'perfect-freehand';
-import DisableZoom from './DisableZoom';
+// import DisableZoom from './DisableZoom';
 import '../scss/components/canvas.scss';
 import axios from 'axios';
 import Sidebar from './Sidebar';
@@ -294,6 +294,7 @@ const usePressedKeys = () => {
 };
 
 const Canvas = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState('none');
   const [tool, setTool] = useState('rectangle');
@@ -334,6 +335,21 @@ const Canvas = () => {
     { family: 'Brush Script MT' },
   ]);
   const [fonts, setFonts] = useState<any>(default_fonts);
+  const navigate = useNavigate();
+
+  const [userData, setUserData] = useState<any>({});
+
+  useLayoutEffect(() => {
+    client.get(`/api/user/`).then((e) => {
+      //patch online for user.profile
+      client.patch(`/api/user-profile/${e.data.user.profile.pk}/`, {
+        online: true,
+      });
+
+      setUserData(e.data.user);
+      console.log(e.data.user);
+    });
+  }, []);
 
   function sortDefaultFontsByFamily(
     fonts: { family: string }[]
@@ -531,9 +547,9 @@ const Canvas = () => {
     const onMouseMove = (e: MouseEvent) => {
       cursor?.setAttribute(
         'style',
-        `left: ${e.pageX - 10}px; top: ${e.pageY - 10}px; width: ${
-          25 * scale
-        }px; height: ${25 * scale}px;`
+        `left: ${e.pageX - 3 * scale}px; top: ${
+          e.pageY - 2 * scale
+        }px; width: ${5 * scale}px; height: ${5 * scale}px;`
       );
     };
 
@@ -553,10 +569,11 @@ const Canvas = () => {
       .then((e) => {
         setCanvasData(e.data.canvas);
         setData(e.data.elements);
-        // setPermission(true);
+        console.log(e.data.canvas);
       })
       .catch((e) => {
         console.log(e);
+        navigate('/dashboard/');
       });
   }, []);
 
@@ -587,8 +604,8 @@ const Canvas = () => {
     const scaledWidth = canvas.width * scale;
     const scaledHeight = canvas.height * scale;
 
-    const scaleOffsetX = (scaledWidth - canvas.width / ratio) / 2;
-    const scaleOffsetY = (scaledHeight - canvas.height / ratio) / 2;
+    const scaleOffsetX = (scaledWidth - canvas.width) / 2;
+    const scaleOffsetY = (scaledHeight - canvas.height) / 2;
     setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
 
     context!.save();
@@ -612,6 +629,7 @@ const Canvas = () => {
     innnerSize,
     fonts,
     permission,
+    canvasData,
   ]);
 
   useEffect(() => {
@@ -658,11 +676,8 @@ const Canvas = () => {
   useEffect(() => {
     document.documentElement.style.setProperty(
       '--dot-space',
-      `${30 * scale}px`
+      `${50 * scale}px`
     );
-  }, [scale]);
-
-  useEffect(() => {
     document.documentElement.style.setProperty(
       '--dot-x',
       `${panOffset.x * scale}px`
@@ -671,12 +686,28 @@ const Canvas = () => {
       '--dot-y',
       `${panOffset.y * scale}px`
     );
-  }, [panOffset]);
+  }, [scale, panOffset]);
+
+  const loadingRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!permission) {
+      loadingRef!.current!.style.opacity = '1';
+      canvasRef!.current!.style.display = 'none';
+    } else {
+      //wait 1 secont and then set display none
+      setTimeout(() => {
+        canvasRef!.current!.style.display = 'unset';
+        loadingRef!.current!.style.opacity = '0';
+        setTimeout(() => {
+          loadingRef!.current!.style.display = 'none';
+        }, 1000);
+      }, 1000);
+    }
+  }, [permission]);
 
   const panOrZoomFunction = (event: any) => {
-    // event.preventDefault();
-    if (pressedKeys.has('Meta') || pressedKeys.has('Control'))
-      onZoom(event.deltaY * -0.01);
+    if (pressedKeys.has('Control')) onZoom(event.deltaY * -0.01);
     else {
       setPanOffset((prev) => ({
         x: prev.x - event.deltaX,
@@ -686,10 +717,10 @@ const Canvas = () => {
   };
 
   useEffect(() => {
-    // document.addEventListener('wheel', panOrZoomFunction);
-    // return () => {
-    //   document.removeEventListener('wheel', panOrZoomFunction);
-    // };
+    document.addEventListener('wheel', panOrZoomFunction);
+    return () => {
+      document.removeEventListener('wheel', panOrZoomFunction);
+    };
   }, [panOffset]);
 
   useEffect(() => {
@@ -698,14 +729,10 @@ const Canvas = () => {
 
     socketRef!.current!.onclose = (e: any) => {
       console.log('close', e);
-      socketRef.current!.close();
-      socketRef.current = new WebSocket(websocket_url);
     };
 
     socketRef.current!.onerror = (e: any) => {
       console.log('error', e);
-      socketRef.current!.close();
-      socketRef.current = new WebSocket(websocket_url);
     };
   }, []);
 
@@ -715,13 +742,14 @@ const Canvas = () => {
       socketRef!.current!.send(
         JSON.stringify({
           type: 'cursorMove',
+          id: userData.id,
           userid: localStorage.getItem('access_token') || '',
-          x: clientX - panOffset.x * scale + scaleOffset.x,
-          y: clientY - panOffset.y * scale + scaleOffset.y,
+          x: clientX,
+          y: clientY,
         })
       );
     },
-    [panOffset]
+    [panOffset, userData]
   );
 
   const throttle = (callback: any, delay: any) => {
@@ -741,10 +769,13 @@ const Canvas = () => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [panOffset]);
+  }, [panOffset, userData]);
 
   useEffect(() => {
-    const cursor = document.querySelector('.cursor') as HTMLElement;
+    const cursor = document.querySelector('.cursor_container') as HTMLElement;
+    const cursorAvatar = document.querySelector(
+      '.cursor_avatar'
+    ) as HTMLImageElement;
     let currentX = 0;
     let currentY = 0;
     let targetX = 0;
@@ -765,12 +796,16 @@ const Canvas = () => {
     const handleCursorMessage = (event: any) => {
       const data = JSON.parse(event.data);
       // const ratio = window.devicePixelRatio;
-
       if (data.type === 'cursorMove') {
         // console.log(data.x + panOffset.x > window.innerWidth);
         if (data.userid !== localStorage.getItem('access_token')) {
-          targetX = data.x + panOffset.x;
-          targetY = data.y + panOffset.y;
+          //get user with id data.userid from canvasData.permitted_users
+          const user = canvasData.permitted_users.find(
+            (user: any) => user.id === data.id
+          );
+          cursorAvatar.src = user!.avatar;
+          targetX = data.x / scale + panOffset.x;
+          targetY = data.y / scale + panOffset.y;
         }
       }
     };
@@ -784,17 +819,123 @@ const Canvas = () => {
         false
       );
     };
-  }, [panOffset]);
+  }, [panOffset, canvasData, scale]);
 
   useEffect(() => {
-    socketRef!.current!.onopen = (e: any) => {
-      console.log('open', e);
+    const Unload = async () => {
+      if (socketRef!.current!.readyState === 1) {
+        await client.patch(`/api/user-profile/${userData.profile.pk}/`, {
+          online: true,
+        });
+        socketRef!.current!.send(
+          JSON.stringify({
+            type: 'join',
+            avatar: userData.avatar,
+            email: userData.email,
+          })
+        );
+      }
     };
+
+    const BeforeUnload = async () => {
+      await client.patch(`/api/user-profile/${userData.profile.pk}/`, {
+        online: false,
+      });
+      socketRef!.current!.send(
+        JSON.stringify({
+          type: 'leave',
+          avatar: userData.avatar,
+          email: userData.email,
+        })
+      );
+    };
+
+    const VisibilityChange = (event: any) => {
+      if (event.type === 'visibilitychange') {
+        if (document.visibilityState === 'hidden') {
+          BeforeUnload();
+        }
+        if (document.visibilityState === 'visible') {
+          Unload();
+        }
+      }
+    };
+
+    window.addEventListener('unload', Unload);
+    window.addEventListener('beforeunload', BeforeUnload);
+    window.addEventListener('beforeclose', BeforeUnload);
+    window.addEventListener('visibilitychange', VisibilityChange);
+    window.addEventListener('reopen', Unload);
+    Unload();
+
+    return () => {
+      window.removeEventListener('beforeunload', () => {});
+      window.removeEventListener('visibilitychange', VisibilityChange);
+    };
+  }, [socketRef, userData]);
+  const [onlineMembers, setOnlineMembers] = useState<any>([]);
+
+  useLayoutEffect(() => {
+    //set online members list from canvasData permitted users
+    if (!canvasData.permitted_users) return;
+
+    for (let i = 0; i < canvasData.permitted_users.length; i++) {
+      if (
+        canvasData.permitted_users[i].email !== userData.email &&
+        canvasData.permitted_users[i].profile.online
+      ) {
+        try {
+          //set online members only if is not in the list
+          if (
+            !onlineMembers.some(
+              (member: any) =>
+                member.email === canvasData.permitted_users[i].email
+            )
+          )
+            setOnlineMembers((prevState: any) => [
+              ...prevState,
+              {
+                email: canvasData.permitted_users[i].email,
+                avatar: canvasData.permitted_users[i].avatar,
+              },
+            ]);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+  }, [canvasData]);
+
+  useEffect(() => {
+    const handleWebsocketOpen = (event: any) => {
+      console.log('open', event);
+    };
+    socketRef!.current!.addEventListener('open', handleWebsocketOpen, false);
 
     const handleMessage = (event: any) => {
       const data = JSON.parse(event.data);
+      // console.log(data);
+      if (data.type === 'leave' && data.email !== userData.email) {
+        //remove from onlineMembers list the user who left
+
+        setOnlineMembers((prevState: any) =>
+          prevState.filter((member: any) => member.email !== data.email)
+        );
+      }
+      if (data.type === 'join' && data.email !== userData.email) {
+        //add for joined user users who already online
+        // check if user is already in the list
+        const member = onlineMembers.find(
+          (member: any) => member.email === data.email
+        );
+        if (!member)
+          setOnlineMembers((prevState: any) => [
+            ...prevState,
+            { email: data.email, avatar: data.avatar },
+          ]);
+      }
       if (
-        data.type !== 'cursorMove' &&
+        data.type === 'elementUpdate' &&
         data.userid !== localStorage.getItem('access_token')
       ) {
         setElements((prevState: any) => [...prevState, data.element], true);
@@ -805,8 +946,13 @@ const Canvas = () => {
 
     return () => {
       socketRef!.current!.removeEventListener('message', handleMessage, false);
+      socketRef!.current!.removeEventListener(
+        'open',
+        handleWebsocketOpen,
+        false
+      );
     };
-  }, [elements]);
+  }, [elements, userData, onlineMembers]);
 
   useEffect(() => {
     const textArea = textAreaRef.current;
@@ -875,6 +1021,30 @@ const Canvas = () => {
             };
           }
         }
+
+        if (
+          !canvasData.fonts.some(
+            (font: any) => font.name === elementsCopy[id].options.fontFamily
+          )
+        ) {
+          client
+            .patch(`/api/canvas/update/${slug}/`, {
+              font: elementsCopy[id].options.fontFamily,
+            })
+            .then(
+              (response) => {
+                console.log(response);
+              },
+              (error) => {
+                console.log(error);
+              }
+            );
+        }
+        //check if elementsCopy[id].options.fontFamily not in array of dictionaries canvasData.fonts
+
+        // console.log(canvasData);
+        // console.log(elementsCopy[id].options.fontFamily);
+
         client.post(`/api/canvas/${slug}/`, {
           element: elementsCopy[id],
         });
@@ -1197,21 +1367,40 @@ const Canvas = () => {
     const fetchData = async () => {
       try {
         const response = await client.get('/api/font/');
-        const fontsToLoad = response.data.length;
+        const userFonts = response.data;
+        const fonts_data = [...canvasData.fonts, ...userFonts];
+        const uniqueFontsData = fonts_data.filter(
+          (value: any, index: any, self: any) =>
+            index ===
+            self.findIndex(
+              (t: any) => t.name === value.name && t.file === value.file
+            )
+        );
+        const fontsToLoad = uniqueFontsData.length;
         let fontsLoaded = 0;
         if (fontsToLoad === 0) {
           setPermission(true);
         }
-        for (let i = 0; i < response.data.length; i++) {
+        for (let i = 0; i < uniqueFontsData.length; i++) {
           const loadFont = async () => {
             try {
               const fontFace = new FontFace(
-                `${response.data[i].name}`,
-                `url(/media/fonts/${response.data[i].file.slice(7)})`
+                `${uniqueFontsData[i].name}`,
+                `url(/media/fonts/${uniqueFontsData[i].file.slice(7)})`
               );
               await fontFace.load();
               document.fonts.add(fontFace);
-              setFonts((prevFonts: any) => [...prevFonts, fontFace]);
+              //check if font in userFonts
+              const isUserFont = userFonts.some(
+                (font: any) =>
+                  font.name === uniqueFontsData[i].name &&
+                  font.file === uniqueFontsData[i].file
+              );
+              if (isUserFont) {
+                setFonts((prevUserFonts: any) => [...prevUserFonts, fontFace]);
+              }
+
+              // setFonts((prevFonts: any) => [...prevFonts, fontFace]);
               fontsLoaded++;
               if (fontsLoaded === fontsToLoad) {
                 setPermission(true);
@@ -1230,7 +1419,7 @@ const Canvas = () => {
     };
 
     fetchData();
-  }, []);
+  }, [canvasData]);
 
   return (
     <div className='canvas-container' style={{ overflow: 'hidden' }}>
@@ -1242,6 +1431,30 @@ const Canvas = () => {
       {/* <DisableZoom /> */}
       <Sidebar />
       <Notifications />
+      <div
+        style={{
+          backgroundColor: '#fff',
+          position: 'absolute',
+          zIndex: 999,
+          top: 50,
+          right: 0,
+          width: '120px',
+          height: '40px',
+        }}
+      >
+        {onlineMembers.map((member: any) => (
+          <img
+            src={member.avatar}
+            className='online-member'
+            style={{
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              objectFit: 'cover',
+            }}
+          />
+        ))}
+      </div>
       <div className='circular-cursor'></div>
       <div
         style={{
@@ -1358,6 +1571,7 @@ const Canvas = () => {
         />
       ) : null}
       <canvas
+        ref={canvasRef}
         id='canvas'
         width={window.innerWidth}
         height={window.innerHeight}
@@ -1405,17 +1619,28 @@ const Canvas = () => {
           value={fontSize}
         />
       </div>
-      <object
+      <div
+        className='cursor_container'
         style={{
-          width: 25,
-          height: 25,
+          zIndex: 100,
           position: 'absolute',
-          zIndex: 1,
+          width: 30,
+          height: 30,
         }}
-        data='/static/icons/cursor.svg'
-        type='image/svg+xml'
-        className='cursor'
-      ></object>
+      >
+        <img className='cursor_avatar' />
+        <object
+          style={{
+            width: 25,
+            height: 25,
+            position: 'absolute',
+            zIndex: 1,
+          }}
+          data='/static/icons/cursor.svg'
+          type='image/svg+xml'
+          className='cursor'
+        ></object>
+      </div>
       <div className='list-choice'>
         <div className='list-choice-title'>{fontFamily}</div>
         <div className='list-choice-objects'>
@@ -1434,6 +1659,27 @@ const Canvas = () => {
             </label>
           ))}
         </div>
+      </div>
+
+      <div
+        className='loading_container'
+        ref={loadingRef}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          width: '100vw',
+          backgroundColor: 'white',
+          position: 'absolute',
+          zIndex: 1000,
+        }}
+      >
+        <object
+          className='loading_logo'
+          data='/static/icons/logo_wings.svg'
+          type='image/svg+xml'
+        ></object>
       </div>
     </div>
   );

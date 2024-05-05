@@ -77,7 +77,9 @@ $dot-space: 30px;
   caret-color: #fff;
   font-size: 16px !important;
   -webkit-appearance: none;
-  -webkit-border-radius: 0;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
 }
 
 // input * {
@@ -89,8 +91,8 @@ $dot-space: 30px;
   border: 0.3px solid #999999;
   border-radius: 50%;
   position: absolute;
-  width: 20px;
-  height: 20px;
+  // width: 10px;
+  // height: 10px;
   z-index: 100;
   pointer-events: none;
 }
@@ -251,6 +253,42 @@ $cursorColor: #0072ce !default;
   @supports not (color: color-mix(in srgb, red, red)) {
     input {
       --_c: var(--c);
+    }
+  }
+}
+
+.cursor_avatar {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.loading_container {
+  //make smooth opacity changing
+  transition: opacity 1s ease;
+}
+
+.loading_logo {
+  width: 200px;
+  height: auto;
+  animation: fadein 1s;
+
+  @keyframes fadein {
+    from {
+      fill: #edbfdb;
+    }
+    to {
+      fill: #000;
+    }
+  }
+
+  @keyframes fadein {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 }
