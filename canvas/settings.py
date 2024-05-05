@@ -57,14 +57,14 @@ ROOT_URLCONF = 'canvas.urls'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8001",
-    "https://api.yookassa.ru",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://127.0.0.1:8001",
+#     "https://api.yookassa.ru",
+# ]
 
 CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:8001",
-    "https://api.yookassa.ru/v3/payments/' ",
+    # "https://api.yookassa.ru/v3/payments/' ",
 ]
 
 SOCIAL_AUTH_URL_NAMESPACE = 'social'

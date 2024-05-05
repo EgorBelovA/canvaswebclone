@@ -16,3 +16,4 @@ db.sqlite3
 */.env
 certbot
 media
+.coverage

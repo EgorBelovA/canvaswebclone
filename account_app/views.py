@@ -156,11 +156,22 @@ from yookassa.domain.notification import WebhookNotification
 
 class GetWebhookView(APIView):
     def post(self, request):
-        event_json = json.loads(request.body)
+        event_json = request.data  # Assuming YooKassa sends data in the request body
         notification_object = WebhookNotification(event_json)
         event = notification_object.object
-        return HttpResponse(status=200)
 
+        # Process the event and create a Subscription
+        subscription = Subscription.objects.create(
+            user=event.user,
+            plan=event.plan,
+            yookassa_subscription_id=event.id,
+            status=event.status
+        )
+
+        # You can add more processing logic here if needed
+
+        # Return a success response
+        return Response({'message': 'Webhook received and processed successfully'}, status=200)
 
 
 class CreatePaymentView(APIView):
@@ -175,10 +186,10 @@ class CreatePaymentView(APIView):
             },
             "confirmation": {
                 "type": "redirect",
-                "return_url": "http:127.0.0.1:8001/dashboard"
+                "return_url": "https://www.canvas-professional.com/dashboard/"
             },
             "capture": True,
-            "description": "Заказ №1"
+            "description": "Payment for subscription",
         }, uuid.uuid4())
 
 

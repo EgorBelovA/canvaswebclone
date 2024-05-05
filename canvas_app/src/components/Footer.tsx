@@ -1,18 +1,20 @@
 // import { render } from 'react-dom';
 import * as React from 'react';
 import '../scss/partials/_navbar.scss';
-import { useState, useEffect } from 'react';
+// import { useState, useEffect } from 'react';
 
 const Navbar: React.FC = () => {
-  const [locale, setLocale] = useState('US');
+  // const [locale, setLocale] = useState('US');
 
-  useEffect(() => {
-    console.log(navigator);
-    setLocale(navigator.language.slice(3, 5));
-  }, []);
+  // useEffect(() => {
+  //   console.log(navigator);
+  //   setLocale(navigator.language.slice(3, 5));
+  // }, []);
 
-  const regionName = new Intl.DisplayNames(['en'], { type: 'region' });
-  const region = regionName.of(locale);
+  // const regionName = new Intl.DisplayNames(['en'], { type: 'region' });
+  // const region = regionName.of(locale);
+
+  const region = 'Russia';
 
   return (
     <div className='footer'>

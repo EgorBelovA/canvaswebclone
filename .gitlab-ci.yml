@@ -1,0 +1,23 @@
+image: python:latest
+
+cache:
+  paths:
+    - ~/.cache/pip/
+
+before_script:
+  - python -V
+
+stages:
+  - test
+
+test:
+  stage: test
+  before_script:
+    - coverage run --source='.' manage.py test the-app-you-want-to-test
+    - pip install coverage
+  script:
+    - coverage run -m unittest main.py
+    - coverage report
+  artifacts:
+    paths:
+      - public/coverage

@@ -29,6 +29,7 @@ urlpatterns = [
     path('create-payment/', CreatePaymentView.as_view()),
     path('yookassa-webhook/', GetWebhookView.as_view(), name='yookassa_webhook'),
 
+    #Google Auth
     path('google/login/', google_login, name='login'),
     path('google/callback/', google_callback, name='login_callback'),
 

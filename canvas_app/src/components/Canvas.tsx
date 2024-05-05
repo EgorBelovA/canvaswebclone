@@ -604,8 +604,8 @@ const Canvas = () => {
     const scaledWidth = canvas.width * scale;
     const scaledHeight = canvas.height * scale;
 
-    const scaleOffsetX = (scaledWidth - canvas.width) / 2;
-    const scaleOffsetY = (scaledHeight - canvas.height) / 2;
+    const scaleOffsetX = (scaledWidth - canvas.width / ratio) / 2;
+    const scaleOffsetY = (scaledHeight - canvas.height / ratio) / 2;
     setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
 
     context!.save();
@@ -739,6 +739,8 @@ const Canvas = () => {
   const onMouseMove = useCallback(
     (e: any) => {
       const { clientX, clientY } = getMouseCoordinates(e);
+      const ration = window.devicePixelRatio;
+
       socketRef!.current!.send(
         JSON.stringify({
           type: 'cursorMove',
@@ -749,7 +751,7 @@ const Canvas = () => {
         })
       );
     },
-    [panOffset, userData]
+    [panOffset, userData, scale, scaleOffset]
   );
 
   const throttle = (callback: any, delay: any) => {
@@ -769,19 +771,23 @@ const Canvas = () => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [panOffset, userData]);
+  }, [panOffset, userData, scale, scaleOffset]);
 
+  const [currentX, setCurrentX] = useState(0);
+  const [currentY, setCurrentY] = useState(0);
+  const [targetX, setTargetX] = useState(0);
+  const [targetY, setTargetY] = useState(0);
   useEffect(() => {
     const cursor = document.querySelector('.cursor_container') as HTMLElement;
     const cursorAvatar = document.querySelector(
       '.cursor_avatar'
     ) as HTMLImageElement;
+
+    let ease = 0.1;
     let currentX = 0;
     let currentY = 0;
     let targetX = 0;
     let targetY = 0;
-    let ease = 0.1;
-
     const run = () => {
       requestAnimationFrame(run);
       currentX += (targetX - currentX) * ease;
@@ -804,8 +810,8 @@ const Canvas = () => {
             (user: any) => user.id === data.id
           );
           cursorAvatar.src = user!.avatar;
-          targetX = data.x / scale + panOffset.x;
-          targetY = data.y / scale + panOffset.y;
+          targetX = data.x + panOffset.x - scaleOffset.x;
+          targetY = data.y + panOffset.y - scaleOffset.y;
         }
       }
     };
@@ -819,7 +825,7 @@ const Canvas = () => {
         false
       );
     };
-  }, [panOffset, canvasData, scale]);
+  }, [panOffset, canvasData, scale, scaleOffset]);
 
   useEffect(() => {
     const Unload = async () => {

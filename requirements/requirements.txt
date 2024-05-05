@@ -15,12 +15,15 @@ coverage==7.4.4
 cryptography==42.0.5
 daphne==4.1.0
 defusedxml==0.8.0rc2
+Deprecated==1.2.14
 deprecation==2.1.0
+distro==1.9.0
 dj-rest-auth==6.0.0
 Django==5.0.3
 django-allauth==0.61.1
 django-clickhouse-backend==1.1.6
 django-cors-headers==4.3.1
+django-debug-toolbar==4.3.0
 django-email-verification==0.3.3
 djangorestframework==3.15.0
 djangorestframework-simplejwt==5.3.1
@@ -35,6 +38,7 @@ jsonschema==4.21.1
 jsonschema-specifications==2023.12.1
 msgpack==1.0.8
 nanoid==2.0.0
+netaddr==1.2.1
 oauthlib==3.2.2
 packaging==24.0
 pillow==10.2.0
@@ -67,4 +71,6 @@ uritemplate==4.1.1
 urllib3==2.2.1
 validators==0.28.0
 websocket-client==1.7.0
+wrapt==1.16.0
+yookassa==3.1.0
 zope.interface==6.2
