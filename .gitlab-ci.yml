@@ -13,11 +13,11 @@ stages:
 test:
   stage: test
   before_script:
-    - coverage run --source='.' manage.py test the-app-you-want-to-test
+    - pip install -r requirements/requirements.txt
     - pip install coverage
   script:
-    - coverage run -m unittest main.py
-    - coverage report
+    - coverage run --source='.' manage.py test the-app-you-want-to-test
+      - coverage report
   artifacts:
     paths:
       - public/coverage
