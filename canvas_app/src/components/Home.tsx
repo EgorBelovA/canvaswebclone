@@ -17,7 +17,11 @@ const HomePage: React.FC = () => {
         loop
         muted
       />
-      <BackgroundButterflies />
+      <BackgroundButterflies
+        styleClassName='circle-container'
+        numberOfButterflies={20}
+        fileName='/static/icons/logo_wings.svg'
+      />
 
       <div className='index-main'>
         <Navbar />

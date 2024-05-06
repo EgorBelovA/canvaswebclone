@@ -11,9 +11,11 @@ html {
 }
 
 $dot-space: 30px;
+$dot-color: lightgray;
+$dot-color-dark: gray;
 #canvas {
   overflow: hidden !important;
-  background-color: #f0f0f0 !important;
+  // background-color: #f0f0f0 !important;
   display: grid;
 
   background-position-x: var(--dot-x);
@@ -29,16 +31,20 @@ $dot-space: 30px;
 .dotted-grid {
   background-image: radial-gradient(
     circle,
-    lightgray 1.5px,
+    var(--dot-color) 1.5px,
     rgba(0, 0, 0, 0) 0px
   );
 }
 
 .lined-grid {
-  background-image: linear-gradient(to right, lightgray 1px, transparent 1px),
-    linear-gradient(to bottom, lightgray 1px, transparent 1px),
-    linear-gradient(to right, lightgray 2px, transparent 1px),
-    linear-gradient(to bottom, lightgray 2px, transparent 1px);
+  background-image: linear-gradient(
+      to right,
+      var(--dot-color) 0.01em,
+      transparent 0.05em
+    ),
+    linear-gradient(to bottom, var(--dot-color) 0.01em, transparent 0.05em),
+    linear-gradient(to right, var(--dot-color) 0.01em, transparent 0.05em),
+    linear-gradient(to bottom, var(--dot-color) 0.01em, transparent 0.05em);
 }
 
 // #canvas {

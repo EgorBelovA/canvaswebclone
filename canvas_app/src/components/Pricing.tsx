@@ -5,6 +5,7 @@ import PricingCard from './PricingCard';
 import '../scss/components/_pricing.scss';
 import '../scss/components/home.scss';
 import { useState } from 'react';
+import BackgroundButterflies from './BackgroundButterflies';
 
 const Pricing = () => {
   const elts = {
@@ -104,6 +105,11 @@ const Pricing = () => {
 
   return (
     <div className='index-container'>
+      <BackgroundButterflies
+        numberOfButterflies={50}
+        styleClassName='butterfly-background'
+        fileName='/static/icons/butterfly_BG.svg'
+      />
       <svg id='filters'>
         <defs>
           <filter id='threshold'>

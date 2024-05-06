@@ -1,12 +1,6 @@
-const Butterfly = () => {
+const Butterfly = (props: any) => {
   return (
-    <div className='circle-container'>
-      <object
-        type='image/svg+xml'
-        data='/static/icons/logo_wings.svg'
-        className='circle'
-      />
-    </div>
+    <object type='image/svg+xml' data={props.fileName} className='circle' />
   );
 };
 

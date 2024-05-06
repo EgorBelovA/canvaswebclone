@@ -321,6 +321,9 @@ const Canvas = () => {
   const [fontColor, setFontColor] = useState('#000000');
   const [fontSize, setFontSize] = useState(24);
   const [fontFamily, setFontFamily] = useState('Times New Roman');
+  const [backGroundColor, setBackGroundColor] = useState('#f0f0f0');
+  const [demoMode, setDemoMode] = useState(false);
+  const [preventDefault, setPreventDefault] = useState(false);
 
   const [permission, setPermission] = useState(false);
 
@@ -375,6 +378,7 @@ const Canvas = () => {
     'fontFamily',
     'zoomIndex',
     'gridType',
+    'backGroundColor',
   ]);
   function youtube_parser(url: any) {
     var regExp =
@@ -496,6 +500,7 @@ const Canvas = () => {
     if (cookies.fontFamily) setFontFamily(cookies.fontFamily);
     if (cookies.zoomIndex) setZoomIndex(cookies.zoomIndex);
     if (cookies.gridType) setGridType(cookies.gridType);
+    if (cookies.backGroundColor) setBackGroundColor(cookies.backGroundColor);
   }, []);
 
   const onResize = () => {
@@ -650,15 +655,18 @@ const Canvas = () => {
 
   const handleWheel = (event: any) => {
     event.preventDefault();
-
+    if (preventDefault) return;
     if (event.ctrlKey || event.metaKey) {
       // console.log(scale);
       // onZoom(0.1);
       setScale((prev) => prev - 0.05 * Math.sign(event.deltaY));
     } else {
-      panOffset.x -= event.deltaX / scale;
-      panOffset.y -= event.deltaY / scale;
-      setPanOffset({ x: panOffset.x, y: panOffset.y });
+      setPanOffset((prev) => ({
+        x: prev.x - event.deltaX / scale,
+        y: prev.y - event.deltaY / scale,
+      }));
+      // const cursor = document.querySelector('.cursor_container') as HTMLElement;
+      // cursor.style.transform = `translate(${10}px, ${10}px)`;
     }
   };
 
@@ -673,6 +681,30 @@ const Canvas = () => {
     };
   }, [panOffset]);
 
+  function shadeColor(color: string, percent: number) {
+    var R = parseInt(color.substring(1, 3), 16);
+    var G = parseInt(color.substring(3, 5), 16);
+    var B = parseInt(color.substring(5, 7), 16);
+
+    R = (R * (100 + percent)) / 100;
+    G = (G * (100 + percent)) / 100;
+    B = (B * (100 + percent)) / 100;
+
+    R = R < 255 ? R : 255;
+    G = G < 255 ? G : 255;
+    B = B < 255 ? B : 255;
+
+    R = Math.round(R);
+    G = Math.round(G);
+    B = Math.round(B);
+
+    var RR = R.toString(16).length == 1 ? '0' + R.toString(16) : R.toString(16);
+    var GG = G.toString(16).length == 1 ? '0' + G.toString(16) : G.toString(16);
+    var BB = B.toString(16).length == 1 ? '0' + B.toString(16) : B.toString(16);
+
+    return '#' + RR + GG + BB;
+  }
+
   useEffect(() => {
     document.documentElement.style.setProperty(
       '--dot-space',
@@ -686,7 +718,12 @@ const Canvas = () => {
       '--dot-y',
       `${panOffset.y * scale}px`
     );
-  }, [scale, panOffset]);
+
+    document.documentElement.style.setProperty(
+      '--dot-color',
+      `${shadeColor(backGroundColor, -20)}`
+    );
+  }, [scale, panOffset, backGroundColor]);
 
   const loadingRef = useRef<HTMLDivElement>(null);
 
@@ -707,6 +744,7 @@ const Canvas = () => {
   }, [permission]);
 
   const panOrZoomFunction = (event: any) => {
+    if (preventDefault) return;
     if (pressedKeys.has('Control')) onZoom(event.deltaY * -0.01);
     else {
       setPanOffset((prev) => ({
@@ -739,8 +777,6 @@ const Canvas = () => {
   const onMouseMove = useCallback(
     (e: any) => {
       const { clientX, clientY } = getMouseCoordinates(e);
-      const ration = window.devicePixelRatio;
-
       socketRef!.current!.send(
         JSON.stringify({
           type: 'cursorMove',
@@ -751,7 +787,7 @@ const Canvas = () => {
         })
       );
     },
-    [panOffset, userData, scale, scaleOffset]
+    [panOffset, userData, scale]
   );
 
   const throttle = (callback: any, delay: any) => {
@@ -767,31 +803,27 @@ const Canvas = () => {
 
   useEffect(() => {
     const handleMouseMove = throttle(onMouseMove, 125);
-    window.addEventListener('mousemove', handleMouseMove, false);
+    canvasRef!.current!.addEventListener('mousemove', handleMouseMove, false);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      canvasRef!.current!.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [panOffset, userData, scale, scaleOffset]);
+  }, [panOffset, userData, scale]);
 
   const [currentX, setCurrentX] = useState(0);
   const [currentY, setCurrentY] = useState(0);
   const [targetX, setTargetX] = useState(0);
   const [targetY, setTargetY] = useState(0);
+  const ease = 0.1;
   useEffect(() => {
     const cursor = document.querySelector('.cursor_container') as HTMLElement;
     const cursorAvatar = document.querySelector(
       '.cursor_avatar'
     ) as HTMLImageElement;
 
-    let ease = 0.1;
-    let currentX = 0;
-    let currentY = 0;
-    let targetX = 0;
-    let targetY = 0;
     const run = () => {
       requestAnimationFrame(run);
-      currentX += (targetX - currentX) * ease;
-      currentY += (targetY - currentY) * ease;
+      setCurrentX((prev) => prev + (targetX - prev) * ease);
+      setCurrentY((prev) => prev + (targetY - prev) * ease);
       const t = `translate3d(${currentX}px,${currentY}px,0px)`;
       let s = cursor.style;
 
@@ -801,17 +833,15 @@ const Canvas = () => {
 
     const handleCursorMessage = (event: any) => {
       const data = JSON.parse(event.data);
-      // const ratio = window.devicePixelRatio;
       if (data.type === 'cursorMove') {
-        // console.log(data.x + panOffset.x > window.innerWidth);
         if (data.userid !== localStorage.getItem('access_token')) {
-          //get user with id data.userid from canvasData.permitted_users
           const user = canvasData.permitted_users.find(
             (user: any) => user.id === data.id
           );
           cursorAvatar.src = user!.avatar;
-          targetX = data.x + panOffset.x - scaleOffset.x;
-          targetY = data.y + panOffset.y - scaleOffset.y;
+          console.log(data);
+          setTargetX(data.x + panOffset.x - scaleOffset.x);
+          setTargetY(data.y + panOffset.y - scaleOffset.y);
         }
       }
     };
@@ -825,7 +855,16 @@ const Canvas = () => {
         false
       );
     };
-  }, [panOffset, canvasData, scale, scaleOffset]);
+  }, [
+    panOffset,
+    canvasData,
+    scale,
+    scaleOffset,
+    targetX,
+    targetY,
+    currentX,
+    currentY,
+  ]);
 
   useEffect(() => {
     const Unload = async () => {
@@ -920,17 +959,21 @@ const Canvas = () => {
 
     const handleMessage = (event: any) => {
       const data = JSON.parse(event.data);
-      // console.log(data);
+      if (data.type === 'demoScreen' && data.userid !== userData.id) {
+        // console.log(data);
+        setPanOffset({ x: data.panOffset.x, y: data.panOffset.y });
+        setScale(data.scale);
+      }
+      if (data.type === 'demo' && data.userid !== userData.id) {
+        // console.log(data);
+        setPreventDefault(data.status);
+      }
       if (data.type === 'leave' && data.email !== userData.email) {
-        //remove from onlineMembers list the user who left
-
         setOnlineMembers((prevState: any) =>
           prevState.filter((member: any) => member.email !== data.email)
         );
       }
       if (data.type === 'join' && data.email !== userData.email) {
-        //add for joined user users who already online
-        // check if user is already in the list
         const member = onlineMembers.find(
           (member: any) => member.email === data.email
         );
@@ -1110,6 +1153,7 @@ const Canvas = () => {
   };
 
   const handleMouseDown = (event: any) => {
+    if (preventDefault) return;
     if (action === 'writing') return;
 
     const { clientX, clientY } = getMouseCoordinates(event);
@@ -1163,6 +1207,7 @@ const Canvas = () => {
   };
 
   const handleMouseMove = (event: any) => {
+    if (preventDefault) return;
     const { clientX, clientY } = getMouseCoordinates(event);
     if (action === 'panning') {
       const deltaX = clientX - startPanMousePosition.x;
@@ -1249,6 +1294,7 @@ const Canvas = () => {
   };
 
   const handleMouseUp = (event: any) => {
+    if (preventDefault) return;
     const { clientX, clientY } = getMouseCoordinates(event);
     if (selectedElement) {
       if (
@@ -1427,6 +1473,54 @@ const Canvas = () => {
     fetchData();
   }, [canvasData]);
 
+  const handleSocketDemoSend = () => {
+    socketRef!.current!.send(
+      JSON.stringify({
+        type: 'demoScreen',
+        scale: scale,
+        panOffset: panOffset,
+        userid: userData.id,
+      })
+    );
+  };
+
+  useEffect(() => {
+    if (socketRef!.current!.readyState === 1) {
+      if (demoMode) {
+        socketRef!.current!.send(
+          JSON.stringify({
+            type: 'demo',
+            status: true,
+            userid: userData.id,
+          })
+        );
+        handleSocketDemoSend();
+      }
+      if (!demoMode) {
+        socketRef!.current!.send(
+          JSON.stringify({
+            type: 'demo',
+            status: false,
+            userid: userData.id,
+          })
+        );
+      }
+    }
+  }, [demoMode, socketRef, panOffset, scale]);
+
+  const handleDemoModeChange = (e: any) => {
+    setDemoMode(e.target.checked);
+  };
+
+  useLayoutEffect(() => {
+    canvasRef!.current!.style.backgroundColor = backGroundColor;
+  }, [backGroundColor]);
+
+  const handleBackgroundColorChange = (e: any) => {
+    setCookie('backGroundColor', e.target.value, { path: `/canvas/${slug}` });
+    setBackGroundColor(e.target.value);
+  };
+
   return (
     <div className='canvas-container' style={{ overflow: 'hidden' }}>
       <title>{canvasData?.title} - Canvas</title>
@@ -1592,37 +1686,52 @@ const Canvas = () => {
       <div ref={colorsRef} className='color-picker'>
         <input
           id='stroke-color'
-          value={strokeColor}
-          onChange={onStrokeColorUpdate}
+          // value={strokeColor}
+          onBlur={onStrokeColorUpdate}
           type='color'
         />
         <input
           id='font-color'
-          value={fontColor}
-          onChange={handleFontColorChange}
+          // value={fontColor}
+          onBlur={handleFontColorChange}
           type='color'
         />
       </div>
       <div className='slider'>
         <input
-          onChange={handleStrokeSizeChange}
+          onBlur={handleStrokeSizeChange}
           type='range'
           id='stroke-width'
           min='3'
           max='25'
           step='0.5'
-          value={strokeSize}
+          // value={strokeSize}
         />
       </div>
       <div className='slider'>
         <input
-          onChange={handleFontSizeChange}
+          onBlur={handleFontSizeChange}
           type='range'
           id='font-size'
           min='24'
           max='100'
           step='2'
-          value={fontSize}
+          // value={fontSize}
+        />
+      </div>
+      <div>
+        <input
+          style={{ position: 'absolute', top: '60px', zIndex: 100 }}
+          type='color'
+          // value={cookies.backGroundColor}
+          onBlur={handleBackgroundColorChange}
+        />
+      </div>
+      <div>
+        <input
+          style={{ position: 'absolute', top: '90px', zIndex: 100 }}
+          type='checkbox'
+          onChange={handleDemoModeChange}
         />
       </div>
       <div
@@ -1647,6 +1756,7 @@ const Canvas = () => {
           className='cursor'
         ></object>
       </div>
+
       <div className='list-choice'>
         <div className='list-choice-title'>{fontFamily}</div>
         <div className='list-choice-objects'>

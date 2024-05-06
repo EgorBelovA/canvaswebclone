@@ -1,5 +1,5 @@
 import Butterfly from './Butterfly';
-const BackgroundButterflies = () => {
+const BackgroundButterflies = (props: any) => {
   return (
     <div
       style={{
@@ -10,8 +10,10 @@ const BackgroundButterflies = () => {
         zIndex: 0,
       }}
     >
-      {Array.from(Array(20)).map(() => (
-        <Butterfly />
+      {Array.from(Array(props.numberOfButterflies)).map(() => (
+        <div className={props.styleClassName}>
+          <Butterfly fileName={props.fileName} />
+        </div>
       ))}
     </div>
   );
