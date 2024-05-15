@@ -64,6 +64,13 @@
 }
 
 .butterfly-background {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  pointer-events: none;
+  z-index: -100;
+
   color: #fff;
   $particleWidth: 40;
   $particleNum: 200;

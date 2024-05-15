@@ -16,13 +16,20 @@ const Contacts = () => {
           </h1>
         </div>
         <div>
-          <div style={{ color: '#fff', fontFamily: 'Breath_Demo' }}>
+          <div
+            style={{
+              color: '#fff',
+              fontFamily: 'Breath_Demo',
+              position: 'absolute',
+              bottom: '40px',
+            }}
+          >
             TAXPAYER IDENTIFICATION NUMBER (TIN) 580314395001
             <br />
             Belov Egor Andreevich
           </div>
-          <Footer />
         </div>
+        <Footer />
       </div>
     </div>
   );

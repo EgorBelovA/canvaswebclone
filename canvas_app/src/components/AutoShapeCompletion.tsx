@@ -9,8 +9,6 @@
 //   //     setLines([...lines, { x: offsetX, y: offsetY }]);
 //   //   };
 
-//   // Здесь нужно реализовать алгоритм завершения формы
-
 //   return (
 //     <Stage width={window.innerWidth} height={window.innerHeight}>
 //       <Layer>

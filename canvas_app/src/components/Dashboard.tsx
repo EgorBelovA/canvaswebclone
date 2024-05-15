@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import '../scss/components/dashboard.scss';
 import DashboardHeader from './DashboardHeader';
 
@@ -15,6 +15,7 @@ const client = axios.create({
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState<any>({});
+  const [isModalCanvasForm, setIsModalCanvasForm] = useState<boolean>(false);
 
   useLayoutEffect(() => {
     client
@@ -62,6 +63,19 @@ const Dashboard = () => {
   //   // navigate(`/canvas/${slug}`, { replace: true });
   // };
 
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  const handleCanvasModal = () => {
+    setIsModalCanvasForm(true);
+  };
+
+  const handleCanvasCreate = (e: any) => {
+    e.preventDefault();
+    client.post('/api/canvas/create/new/', {
+      title: titleRef.current!.value,
+    });
+  };
+
   return (
     <div>
       <DashboardHeader avatar={userData.avatar} />
@@ -75,6 +89,13 @@ const Dashboard = () => {
             Log out
           </button>
         </form>
+        <button
+          onClick={handleCanvasModal}
+          type='button'
+          className='create-button'
+        >
+          New canvas
+        </button>
       </div>
       <div className='cards-container'>
         {canvases.map((item: any) => (
@@ -86,6 +107,49 @@ const Dashboard = () => {
           </a>
         ))}
       </div>
+      {isModalCanvasForm && (
+        <div className='modal-canvas-form'>
+          <div className='modal-canvas-form-header'>
+            <div className='modal-canvas-title'>Canvas Form</div>
+            <div
+              className='modal-close-button'
+              onClick={() => setIsModalCanvasForm(false)}
+            >
+              X
+            </div>
+          </div>
+          <div className='modal-canvas-form-body'>
+            <form>
+              <div className='form-group'>
+                <label htmlFor='title'>Title</label>
+                <input
+                  ref={titleRef}
+                  type='text'
+                  className='form-control'
+                  id='title'
+                  placeholder='Enter title'
+                />
+              </div>
+              <div className='form-group'>
+                <label htmlFor='image'>Image</label>
+                <input
+                  type='file'
+                  className='form-control'
+                  id='image'
+                  placeholder='Enter image'
+                />
+              </div>
+              <button
+                type='button'
+                className='btn btn-primary'
+                onClick={handleCanvasCreate}
+              >
+                Submit
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

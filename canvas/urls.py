@@ -39,6 +39,7 @@ urlpatterns = [
     path('contacts/', index_view, name='contact'),
     path('pixel-battle/', index_view, name='pixel-battle'),
     path('profile/', index_view, name='profile'),
+    path('jwt/auth/', index_view, name='jwt-auth'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 

@@ -16,6 +16,7 @@ urlpatterns = [
     #API
     path('canvas/', AllCanvasView.as_view(), name='canvas_view'),
     path('canvas/<slug>/', CanvasView.as_view(), name='canvas_view'),
+    path('canvas/create/new/', CanvasViewApiCreate.as_view(), name='canvas_create'),
     path('canvas/update/<slug>/', CanvasViewApiUpdate.as_view(), name='canvas_update'),
     path('signup/', UserRegister.as_view(), name='api_auth'),
     path('login/', UserLogin.as_view(), name='api_login'),
@@ -24,6 +25,8 @@ urlpatterns = [
     path('user/<pk>/', UserApiUpdate.as_view(), name='user_update'),
     path('user-profile/<pk>/', UserProfileApiUpdate.as_view(), name='user_profile_update'),
     path('font/', FontUploadView.as_view(), name='font_upload'),
+    path('notifications/', NotificationView.as_view(), name='notifications'),
+    path('notifications/<int:pk>/', NotificationView.as_view(), name='notifications_delete'),
 
     #Payment
     path('create-payment/', CreatePaymentView.as_view()),

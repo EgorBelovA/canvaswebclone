@@ -43,9 +43,9 @@ class CanvasElement(models.Model):
 
 
 class Notification(models.Model):
-    send_from = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE, related_name='send_from')
-    send_to = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE, related_name='send_to')
-    message = models.CharField(max_length=250)
+    sender = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE, related_name='send_from')
+    recipient = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE, related_name='user_notifications', db_index=True)
+    type = models.CharField(max_length=50, choices=(('requestAccess', 'requestAccess'),))
     created_at = models.DateTimeField(auto_now_add=True)
 
 

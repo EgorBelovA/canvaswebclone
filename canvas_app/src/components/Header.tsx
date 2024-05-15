@@ -2,7 +2,7 @@
 import * as React from 'react';
 import '../scss/partials/_navbar.scss';
 
-const Navbar: React.FC = () => {
+const Header: React.FC = () => {
   return (
     <nav>
       <div className='header'>
@@ -29,4 +29,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar;
+export default Header;

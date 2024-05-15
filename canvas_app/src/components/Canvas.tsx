@@ -5,13 +5,10 @@ import {
   useLayoutEffect,
   useCallback,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
 import rough from 'roughjs';
 import getStroke from 'perfect-freehand';
-// import DisableZoom from './DisableZoom';
 import '../scss/components/canvas.scss';
 import axios from 'axios';
-import Sidebar from './Sidebar';
 import Notifications from './Notifications';
 import { useCookies } from 'react-cookie';
 
@@ -23,6 +20,59 @@ const client = axios.create({
   baseURL: location.origin,
 });
 
+// const drawPolyhedron = (x1: any, y1: any) => {
+//   const points = 5;
+//   const angle = (Math.PI * 2) / points;
+//   const radius = 100;
+
+//   const starPoints = [] as any;
+//   for (let i = 0; i < points * 2; i++) {
+//     const radians = (i / 2) * angle;
+//     const x = x1 + radius * Math.cos(radians);
+//     const y = y1 + radius * Math.sin(radians);
+//     starPoints.push([x, y]);
+//   }
+
+//   return starPoints;
+// };
+
+const drawStar: any = (x1: any, y1: any, x2: any, y2: any, n: any) => {
+  const points = [] as any;
+
+  const centerX = x1;
+  const centerY = y1;
+
+  const outerRadius =
+    Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) / 2;
+
+  const innerRadius = outerRadius / 2;
+  const rotationAngle = (18 * Math.PI) / 180;
+
+  const angleIncrement = (2 * Math.PI) / n;
+  console.log(angleIncrement);
+
+  for (let i = 0; i < n; i++) {
+    const angle = i * angleIncrement - rotationAngle;
+
+    const outerX = centerX + outerRadius * Math.cos(angle);
+    const outerY = centerY + outerRadius * Math.sin(angle);
+
+    const innerAngle = angle + angleIncrement / 2;
+    const innerX = centerX + innerRadius * Math.cos(innerAngle);
+    const innerY = centerY + innerRadius * Math.sin(innerAngle);
+
+    points.push([outerX, outerY]);
+    points.push([innerX, innerY]);
+  }
+
+  points.push(points[0]);
+
+  return points;
+};
+
+// Example usage:
+const starPoints = drawStar(100, 100, 200, 200, 5);
+console.log(starPoints);
 const generator = rough.generator();
 
 const createElement = (
@@ -34,16 +84,45 @@ const createElement = (
   type: any,
   options: any
 ) => {
+  let roughElement: any;
   switch (type) {
     case 'line':
+      roughElement = generator.line(x1, y1, x2, y2, { roughness: 0 });
+      return { id, x1, y1, x2, y2, type, roughElement };
     case 'rectangle':
-      const roughElement =
-        type === 'line'
-          ? generator.line(x1, y1, x2, y2, { roughness: 0 })
-          : generator.rectangle(x1, y1, x2 - x1, y2 - y1, { roughness: 0 });
+      roughElement = generator.rectangle(x1, y1, x2 - x1, y2 - y1, {
+        roughness: 0,
+      });
+      return { id, x1, y1, x2, y2, type, roughElement };
+    case 'ellipse':
+      roughElement = generator.ellipse(
+        x1,
+        y1,
+        x2 - x1 - (x1 - x2),
+        y2 - y1 - (y1 - y2),
+        {
+          roughness: 0,
+        }
+      );
+      return { id, x1, y1, x2, y2, type, roughElement };
+    case 'triangle':
+      roughElement = generator.linearPath(
+        [
+          [x1 - (x2 - x1), y1],
+          [x2 - (x2 - x1), y2],
+          [x2, y1],
+          [x1 - (x2 - x1), y1],
+          // [x1 + (x2 - x1), y1],
+        ],
+        { roughness: 0 }
+      );
+      return { id, x1, y1, x2, y2, type, roughElement };
+    case 'star':
+      roughElement = generator.linearPath(drawStar(x1, y1, x2, y2, 5), {
+        roughness: 0,
+      });
       return { id, x1, y1, x2, y2, type, roughElement };
     case 'pencil':
-      console.log(options);
       return {
         id,
         type,
@@ -97,6 +176,11 @@ const onLine = (
 
 const positionWithinElement = (x: any, y: any, element: any) => {
   const { type, x1, x2, y1, y2 } = element;
+  let topLeft: any;
+  let topRight: any;
+  let bottomLeft: any;
+  let bottomRight: any;
+  let inside: any;
   switch (type) {
     case 'line':
       const on = onLine(x1, y1, x2, y2, x, y);
@@ -104,11 +188,32 @@ const positionWithinElement = (x: any, y: any, element: any) => {
       const end = nearPoint(x, y, x2, y2, 'end');
       return start || end || on;
     case 'rectangle':
-      const topLeft = nearPoint(x, y, x1, y1, 'tl');
-      const topRight = nearPoint(x, y, x2, y1, 'tr');
-      const bottomLeft = nearPoint(x, y, x1, y2, 'bl');
-      const bottomRight = nearPoint(x, y, x2, y2, 'br');
-      const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
+      topLeft = nearPoint(x, y, x1, y1, 'tl');
+      topRight = nearPoint(x, y, x2, y1, 'tr');
+      bottomLeft = nearPoint(x, y, x1, y2, 'bl');
+      bottomRight = nearPoint(x, y, x2, y2, 'br');
+      inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
+      return topLeft || topRight || bottomLeft || bottomRight || inside;
+    case 'ellipse':
+      topLeft = nearPoint(x, y, x1, y1, 'tl');
+      topRight = nearPoint(x, y, x2, y1, 'tr');
+      bottomLeft = nearPoint(x, y, x1, y2, 'bl');
+      bottomRight = nearPoint(x, y, x2, y2, 'br');
+      inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
+      return topLeft || topRight || bottomLeft || bottomRight || inside;
+    case 'triangle':
+      topLeft = nearPoint(x, y, x1, y1, 'tl');
+      topRight = nearPoint(x, y, x2, y1, 'tr');
+      bottomLeft = nearPoint(x, y, x1, y2, 'bl');
+      bottomRight = nearPoint(x, y, x2, y2, 'br');
+      inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
+      return topLeft || topRight || bottomLeft || bottomRight || inside;
+    case 'star':
+      topLeft = nearPoint(x, y, x1, y1, 'tl');
+      topRight = nearPoint(x, y, x2, y1, 'tr');
+      bottomLeft = nearPoint(x, y, x1, y2, 'bl');
+      bottomRight = nearPoint(x, y, x2, y2, 'br');
+      inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
       return topLeft || topRight || bottomLeft || bottomRight || inside;
     case 'pencil':
       const betweenAnyPoint = element.points.some((point: any, index: any) => {
@@ -140,22 +245,27 @@ const getElementAtPosition = (x: any, y: any, elements: any) => {
     .find((element: any) => element.position !== null);
 };
 
-const adjustElementCoordinates = (element: any) => {
-  const { type, x1, y1, x2, y2 } = element;
-  if (type === 'rectangle') {
-    const minX = Math.min(x1, x2);
-    const maxX = Math.max(x1, x2);
-    const minY = Math.min(y1, y2);
-    const maxY = Math.max(y1, y2);
-    return { x1: minX, y1: minY, x2: maxX, y2: maxY };
-  } else {
-    if (x1 < x2 || (x1 === x2 && y1 < y2)) {
-      return { x1, y1, x2, y2 };
-    } else {
-      return { x1: x2, y1: y2, x2: x1, y2: y1 };
-    }
-  }
-};
+// const adjustElementCoordinates = (element: any) => {
+//   const { type, x1, y1, x2, y2 } = element;
+//   if (
+//     type === 'rectangle' ||
+//     type === 'ellipse' ||
+//     type === 'triangle' ||
+//     type === 'star'
+//   ) {
+//     const minX = Math.min(x1, x2);
+//     const maxX = Math.max(x1, x2);
+//     const minY = Math.min(y1, y2);
+//     const maxY = Math.max(y1, y2);
+//     return { x1: minX, y1: minY, x2: maxX, y2: maxY };
+//   } else {
+//     if (x1 < x2 || (x1 === x2 && y1 < y2)) {
+//       return { x1, y1, x2, y2 };
+//     } else {
+//       return { x1: x2, y1: y2, x2: x1, y2: y1 };
+//     }
+//   }
+// };
 
 const cursorForPosition = (position: any) => {
   switch (position) {
@@ -240,7 +350,11 @@ const drawElement = (roughCanvas: any, context: any, element: any) => {
   switch (element.type) {
     case 'line':
     case 'rectangle':
-      roughCanvas.draw(element.roughElement);
+    case 'ellipse':
+    case 'triangle':
+    case 'star':
+      context.fillStyle = element?.options?.fillColor;
+      roughCanvas.draw(element.roughElement, { fill: 'red', stroke: 'red' });
       break;
     case 'pencil':
       const stroke = getSvgPathFromStroke(
@@ -248,7 +362,6 @@ const drawElement = (roughCanvas: any, context: any, element: any) => {
       );
       context.fillStyle = element?.options?.strokeColor;
       context.fill(new Path2D(stroke));
-
       break;
     case 'text':
       context.textBaseline = 'top';
@@ -264,7 +377,8 @@ const drawElement = (roughCanvas: any, context: any, element: any) => {
   }
 };
 
-const adjustmentRequired = (type: any) => ['line', 'rectangle'].includes(type);
+// const adjustmentRequired = (type: any) =>
+//   ['line', 'rectangle', 'ellipse', 'triangle', 'star'].includes(type);
 
 const usePressedKeys = () => {
   const [pressedKeys, setPressedKeys] = useState(new Set());
@@ -294,7 +408,11 @@ const usePressedKeys = () => {
 };
 
 const Canvas = () => {
+  const [autoShapeMode, setAutoShapeMode] = useState(false);
+  const [isShapeBox, setIsShapeBox] = useState<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasMiniRef = useRef<HTMLCanvasElement>(null);
+  const [modelML5, setModelML5] = useState<any>(null);
   const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState('none');
   const [tool, setTool] = useState('rectangle');
@@ -338,19 +456,25 @@ const Canvas = () => {
     { family: 'Brush Script MT' },
   ]);
   const [fonts, setFonts] = useState<any>(default_fonts);
-  const navigate = useNavigate();
 
   const [userData, setUserData] = useState<any>({});
 
   useLayoutEffect(() => {
     client.get(`/api/user/`).then((e) => {
-      //patch online for user.profile
       client.patch(`/api/user-profile/${e.data.user.profile.pk}/`, {
         online: true,
       });
 
       setUserData(e.data.user);
       console.log(e.data.user);
+    });
+  }, []);
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  useLayoutEffect(() => {
+    client.get(`/api/notifications/`).then((e) => {
+      setNotifications(e.data);
     });
   }, []);
 
@@ -379,6 +503,7 @@ const Canvas = () => {
     'zoomIndex',
     'gridType',
     'backGroundColor',
+    'autoShapeMode',
   ]);
   function youtube_parser(url: any) {
     var regExp =
@@ -501,6 +626,7 @@ const Canvas = () => {
     if (cookies.zoomIndex) setZoomIndex(cookies.zoomIndex);
     if (cookies.gridType) setGridType(cookies.gridType);
     if (cookies.backGroundColor) setBackGroundColor(cookies.backGroundColor);
+    if (cookies.autoShapeMode) setAutoShapeMode(cookies.autoShapeMode);
   }, []);
 
   const onResize = () => {
@@ -530,7 +656,7 @@ const Canvas = () => {
 
   const handleToolChange = (tool: any) => {
     setTool(tool);
-    setCookie('tool', tool, { path: `/canvas/${slug}` });
+    setCookie('tool', tool, { path: pageURL });
   };
 
   var wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -542,9 +668,10 @@ const Canvas = () => {
   fontColorElement?.addEventListener('change', onFontColorUpdate, false);
 
   const slug = window.location.pathname.split('/')[2];
-  const pageURL = window.location.origin + '/canvas/' + slug;
+  const pageURL = `/canvas/${slug}`;
 
   const socketRef = useRef<WebSocket | null>(null);
+  const socketUserRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     let cursor = document.querySelector('.circular-cursor');
@@ -568,6 +695,13 @@ const Canvas = () => {
   }, [scale]);
 
   const [data, setData] = useState({});
+  const [isModalWindowRequest, setIsModalWindowRequest] =
+    useState<boolean>(false);
+  const [isNotFound, setIsNotFound] = useState<boolean>(false);
+
+  const socketRequestRef = useRef<WebSocket | null>(null);
+  const [canvasRequestUserID, setCanvasRequestUserID] = useState<any>(null);
+
   useLayoutEffect(() => {
     client
       .get(`/api/canvas/${slug}/`)
@@ -577,10 +711,37 @@ const Canvas = () => {
         console.log(e.data.canvas);
       })
       .catch((e) => {
-        console.log(e);
-        navigate('/dashboard/');
+        if (e.response.status === 404) {
+          setIsNotFound(true);
+        } else if (e.response.status === 403) {
+          setIsModalWindowRequest(true);
+          console.log(e.response.data[0][0]);
+          const websocket_url = `${wsProtocol}://${location.host}/user/${e.response.data[0][0]}/`;
+          console.log(websocket_url);
+          socketRequestRef.current = new WebSocket(websocket_url);
+          socketRequestRef.current.onopen = () => {
+            console.log('socket request open');
+          };
+          socketRequestRef.current.onclose = () => {
+            console.log('socket request close');
+          };
+          socketRequestRef.current.onerror = () => {
+            console.log('socket request error');
+          };
+          setCanvasRequestUserID(e.response.data[0][0]);
+        }
       });
   }, []);
+
+  const handleAccessRequest = () => {
+    socketRequestRef!.current!.send(
+      JSON.stringify({
+        type: 'request',
+        recipientID: canvasRequestUserID,
+        senderID: userData.id,
+      })
+    );
+  };
 
   useLayoutEffect(() => {
     const data2 = new Map(Object.entries(data));
@@ -671,11 +832,11 @@ const Canvas = () => {
   };
 
   useEffect(() => {
-    window.addEventListener('wheel', handleWheel, {
+    canvasRef!.current!.addEventListener('wheel', handleWheel, {
       passive: false,
     } as AddEventListenerOptions);
     return () => {
-      window.removeEventListener('wheel', handleWheel, {
+      canvasRef!.current!.removeEventListener('wheel', handleWheel, {
         passive: false,
       } as AddEventListenerOptions);
     };
@@ -755,14 +916,42 @@ const Canvas = () => {
   };
 
   useEffect(() => {
-    document.addEventListener('wheel', panOrZoomFunction);
+    canvasRef!.current!.addEventListener('wheel', panOrZoomFunction);
     return () => {
-      document.removeEventListener('wheel', panOrZoomFunction);
+      canvasRef!.current!.removeEventListener('wheel', panOrZoomFunction);
     };
   }, [panOffset]);
 
+  useLayoutEffect(() => {
+    const websocket_url = `${wsProtocol}://${location.host}/user/${userData.id}/`;
+    socketUserRef.current = new WebSocket(websocket_url);
+
+    const handleMessage = (e: any) => {
+      const data = JSON.parse(e.data);
+      console.log(data);
+    };
+
+    socketUserRef!.current!.onclose = (e: any) => {
+      console.log('close', e);
+    };
+
+    socketUserRef.current!.onerror = (e: any) => {
+      console.log('error', e);
+    };
+
+    socketUserRef.current!.addEventListener('message', handleMessage, false);
+
+    return () => {
+      socketUserRef.current!.removeEventListener(
+        'message',
+        handleMessage,
+        false
+      );
+    };
+  }, [userData]);
+
   useEffect(() => {
-    const websocket_url = `${wsProtocol}://${location.host}/${slug}/`;
+    const websocket_url = `${wsProtocol}://${location.host}/canvas/${slug}/`;
     socketRef.current = new WebSocket(websocket_url);
 
     socketRef!.current!.onclose = (e: any) => {
@@ -781,7 +970,7 @@ const Canvas = () => {
         JSON.stringify({
           type: 'cursorMove',
           id: userData.id,
-          userid: localStorage.getItem('access_token') || '',
+          userid: userData.id,
           x: clientX,
           y: clientY,
         })
@@ -809,44 +998,49 @@ const Canvas = () => {
     };
   }, [panOffset, userData, scale]);
 
-  const [currentX, setCurrentX] = useState(0);
-  const [currentY, setCurrentY] = useState(0);
+  const [currentX] = useState(0);
+  const [currentY] = useState(0);
   const [targetX, setTargetX] = useState(0);
   const [targetY, setTargetY] = useState(0);
-  const ease = 0.1;
+  // const ease = 0.1;
   useEffect(() => {
-    const cursor = document.querySelector('.cursor_container') as HTMLElement;
-    const cursorAvatar = document.querySelector(
-      '.cursor_avatar'
-    ) as HTMLImageElement;
+    let cursor: any;
+    // const cursorAvatar = document.querySelector(
+    //   '.cursor_avatar'
+    // ) as HTMLImageElement;
 
-    const run = () => {
-      requestAnimationFrame(run);
-      setCurrentX((prev) => prev + (targetX - prev) * ease);
-      setCurrentY((prev) => prev + (targetY - prev) * ease);
-      const t = `translate3d(${currentX}px,${currentY}px,0px)`;
-      let s = cursor.style;
+    // const run = () => {
+    //   requestAnimationFrame(run);
+    //   setCurrentX((prev) => prev + (targetX - prev) * ease);
+    //   setCurrentY((prev) => prev + (targetY - prev) * ease);
+    //   const t = `translate3d(${currentX}px,${currentY}px,0px)`;
+    //   let s = cursor.style;
 
-      s['transform'] = t;
-    };
-    run();
+    //   s['transform'] = t;
+    // };
+    // run();
 
     const handleCursorMessage = (event: any) => {
       const data = JSON.parse(event.data);
+      console.log(data);
       if (data.type === 'cursorMove') {
-        if (data.userid !== localStorage.getItem('access_token')) {
-          const user = canvasData.permitted_users.find(
-            (user: any) => user.id === data.id
-          );
-          cursorAvatar.src = user!.avatar;
-          console.log(data);
+        if (data.userid !== userData.id) {
+          cursor = document.querySelectorAll(
+            '.cursor_container'
+          )[0] as HTMLElement;
+          console.log(cursor);
+          // const user = canvasData.permitted_users.find(
+          //   (user: any) => user.id === data.id
+          // );
+          // cursorAvatar.src = user!.avatar;
+          // console.log(data);
           setTargetX(data.x + panOffset.x - scaleOffset.x);
           setTargetY(data.y + panOffset.y - scaleOffset.y);
         }
       }
     };
 
-    socketRef!.current!.addEventListener('message', handleCursorMessage, false);
+    // socketRef!.current!.addEventListener('message', handleCursorMessage, false);
 
     return () => {
       socketRef!.current!.removeEventListener(
@@ -869,9 +1063,9 @@ const Canvas = () => {
   useEffect(() => {
     const Unload = async () => {
       if (socketRef!.current!.readyState === 1) {
-        await client.patch(`/api/user-profile/${userData.profile.pk}/`, {
-          online: true,
-        });
+        // await client.patch(`/api/user-profile/${userData.profile.pk}/`, {
+        //   online: true,
+        // });
         socketRef!.current!.send(
           JSON.stringify({
             type: 'join',
@@ -911,11 +1105,23 @@ const Canvas = () => {
     window.addEventListener('beforeclose', BeforeUnload);
     window.addEventListener('visibilitychange', VisibilityChange);
     window.addEventListener('reopen', Unload);
+    window.addEventListener('blur', BeforeUnload);
+    window.addEventListener('focus', Unload);
+    window.addEventListener('pagehide', BeforeUnload);
+    window.addEventListener('pageshow', Unload);
+
     Unload();
 
     return () => {
       window.removeEventListener('beforeunload', () => {});
       window.removeEventListener('visibilitychange', VisibilityChange);
+      window.removeEventListener('unload', Unload);
+      window.removeEventListener('beforeclose', BeforeUnload);
+      window.removeEventListener('reopen', Unload);
+      window.removeEventListener('blur', BeforeUnload);
+      window.removeEventListener('focus', Unload);
+      window.removeEventListener('pagehide', BeforeUnload);
+      window.removeEventListener('pageshow', Unload);
     };
   }, [socketRef, userData]);
   const [onlineMembers, setOnlineMembers] = useState<any>([]);
@@ -930,7 +1136,6 @@ const Canvas = () => {
         canvasData.permitted_users[i].profile.online
       ) {
         try {
-          //set online members only if is not in the list
           if (
             !onlineMembers.some(
               (member: any) =>
@@ -951,6 +1156,18 @@ const Canvas = () => {
     }
   }, [canvasData]);
 
+  const [reactions, setReactions] = useState<any>([]);
+
+  // const timeout = setTimeout(() => {
+  //   setReactions([]);
+  // }, 4000);
+
+  useEffect(() => {
+    // return () => {
+    //   clearTimeout(timeout);
+    // };
+  }, [reactions]);
+
   useEffect(() => {
     const handleWebsocketOpen = (event: any) => {
       console.log('open', event);
@@ -959,13 +1176,15 @@ const Canvas = () => {
 
     const handleMessage = (event: any) => {
       const data = JSON.parse(event.data);
+      if (data.type === 'reaction') {
+        const reaction = { id: data.userid, src: data.src };
+        setReactions((prevState: any) => [...prevState, reaction]);
+      }
       if (data.type === 'demoScreen' && data.userid !== userData.id) {
-        // console.log(data);
         setPanOffset({ x: data.panOffset.x, y: data.panOffset.y });
         setScale(data.scale);
       }
       if (data.type === 'demo' && data.userid !== userData.id) {
-        // console.log(data);
         setPreventDefault(data.status);
       }
       if (data.type === 'leave' && data.email !== userData.email) {
@@ -1001,7 +1220,7 @@ const Canvas = () => {
         false
       );
     };
-  }, [elements, userData, onlineMembers]);
+  }, [elements, userData, onlineMembers, reactions]);
 
   useEffect(() => {
     const textArea = textAreaRef.current;
@@ -1029,6 +1248,10 @@ const Canvas = () => {
     switch (type) {
       case 'line':
       case 'rectangle':
+      case 'ellipse':
+      case 'triangle':
+      case 'star':
+        // const { strokeSize, strokeColor } = options;
         elementsCopy[id] = createElement(id, x1, y1, x2, y2, type, {
           strokeSize: strokeSize,
           strokeColor: strokeColor,
@@ -1089,12 +1312,8 @@ const Canvas = () => {
               }
             );
         }
-        //check if elementsCopy[id].options.fontFamily not in array of dictionaries canvasData.fonts
 
-        // console.log(canvasData);
-        // console.log(elementsCopy[id].options.fontFamily);
-
-        client.post(`/api/canvas/${slug}/`, {
+        client.patch(`/api/canvas/${slug}/`, {
           element: elementsCopy[id],
         });
         socketRef?.current?.send(
@@ -1139,17 +1358,17 @@ const Canvas = () => {
 
   const handleStrokeSizeChange = (event: any) => {
     setStrokeSize(parseInt(event.target.value));
-    setCookie('strokeSize', event.target.value, { path: `/canvas/${slug}` });
+    setCookie('strokeSize', event.target.value, { path: pageURL });
   };
 
   const handleFontSizeChange = (event: any) => {
     setFontSize(parseInt(event.target.value));
-    setCookie('fontSize', event.target.value, { path: `/canvas/${slug}` });
+    setCookie('fontSize', event.target.value, { path: pageURL });
   };
 
   const handleFontColorChange = (event: any) => {
     setFontColor(event.target.value);
-    // setCookie('fontColor', event.target.value, { path: `/canvas/${slug}` });
+    setCookie('fontColor', event.target.value, { path: `/canvas/${slug}` });
   };
 
   const handleMouseDown = (event: any) => {
@@ -1282,16 +1501,46 @@ const Canvas = () => {
   const onZoomPlus = () => {
     if (zoomIndex === zoomValues.length - 1) return;
     setZoomIndex((prevIndex) => prevIndex + 1);
-    setCookie('zoomIndex', zoomIndex + 1, { path: `/canvas/${slug}` });
+    setCookie('zoomIndex', zoomIndex + 1, { path: pageURL });
     onZoom(zoomValues[zoomIndex]);
   };
 
   const onZoomMinus = () => {
     if (zoomIndex === 0) return;
     setZoomIndex((prevIndex) => prevIndex - 1);
-    setCookie('zoomIndex', zoomIndex - 1, { path: `/canvas/${slug}` });
+    setCookie('zoomIndex', zoomIndex - 1, { path: pageURL });
     onZoom(-zoomValues[zoomIndex]);
   };
+
+  const modelLoaded = () => {
+    console.log('ModelML5 Loaded');
+  };
+
+  const loadModel = async () => {
+    try {
+      const options = {
+        task: 'imageClassification',
+      };
+      // @ts-ignore
+      const ShapeClassifier = ml5.neuralNetwork(options);
+      const modelDetails = {
+        model: '/static/model/model.json',
+        metadata: '/static/model/model_meta.json',
+        weights: '/static/model/model.weights.bin',
+      };
+
+      ShapeClassifier.load(modelDetails, modelLoaded);
+      setModelML5(ShapeClassifier);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useLayoutEffect(() => {
+    loadModel();
+  }, []);
+
+  const [_, setShapeRecognitionResult] = useState(null);
 
   const handleMouseUp = (event: any) => {
     if (preventDefault) return;
@@ -1307,16 +1556,16 @@ const Canvas = () => {
       }
 
       const index = selectedElement.id;
-      const { id, type } = elements[index];
-      if (
-        (action === 'drawing' || action === 'resizing') &&
-        adjustmentRequired(type)
-      ) {
-        const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
-        updateElement(id, x1, y1, x2, y2, type, null);
-      }
+      // const { id, type } = elements[index];
+      // if (
+      //   (action === 'drawing' || action === 'resizing') &&
+      //   adjustmentRequired(type)
+      // ) {
+      // const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
+      // updateElement(id, x1, y1, x2, y2, type, null);
+      // }
       try {
-        client.post(`/api/canvas/${slug}/`, {
+        client.patch(`/api/canvas/${slug}/`, {
           element: elements[index],
         });
       } catch (error) {
@@ -1333,7 +1582,149 @@ const Canvas = () => {
       } catch (error) {
         console.log(error);
       }
+      if (tool === 'pencil' && autoShapeMode) {
+        const canvasMini = canvasMiniRef.current;
+        const ctxMini = canvasMini?.getContext('2d');
+        const roughCanvasMini = rough.canvas(canvasMini!);
+
+        ctxMini?.clearRect(0, 0, canvasMini!.width, canvasMini!.height);
+        ctxMini!.fillStyle = '#fff';
+        ctxMini!.fillRect(0, 0, canvasMini!.width, canvasMini!.height);
+        ctxMini!.fillStyle = '#000';
+        const elemCopy = structuredClone(elements[index]);
+        let maxX = 0;
+        let maxY = 0;
+        let minX = Infinity;
+        let minY = Infinity;
+        elemCopy.points.forEach((point: any) => {
+          maxX = Math.max(maxX, point.x);
+          maxY = Math.max(maxY, point.y);
+        });
+
+        elemCopy.points.forEach((point: any) => {
+          minX = Math.min(minX, point.x);
+          minY = Math.min(minY, point.y);
+        });
+
+        let distanceX = maxX - minX;
+        let distanceY = maxY - minY;
+        const resizeK = Math.max(distanceX / 42, distanceY / 42);
+        elemCopy.options.strokeSize = 5;
+        elemCopy.options.strokeColor = '#000';
+        elemCopy.options.fill = '#000000';
+        elemCopy.points = elemCopy.points.map((point: any, _: any) => ({
+          x:
+            (point.x +
+              panOffset.x -
+              scaleOffset.x -
+              (minX + panOffset.x - scaleOffset.x)) /
+              resizeK +
+            11,
+          y:
+            (point.y +
+              panOffset.y -
+              scaleOffset.y -
+              (minY + panOffset.y - scaleOffset.y)) /
+              resizeK +
+            11,
+        }));
+
+        drawElement(roughCanvasMini, ctxMini!, elemCopy);
+
+        const canvasMiniImage = new Image();
+        canvasMiniImage.src = canvasMini!.toDataURL('image/jpeg', 1.0);
+        canvasMiniImage.onload = () => {
+          modelML5?.classify({ image: canvasMiniImage }, gotResults);
+        };
+      }
     }
+
+    const gotResults = (err: any, results: any) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log(results[0].label, results[0].confidence);
+      if (results[0].confidence < 0.85) return;
+      setShapeRecognitionResult(results[0].label);
+      if (results[0].label) {
+        const el = elements[elements.length - 1];
+        let maxX = 0;
+        let maxY = 0;
+        let minX = Infinity;
+        let minY = Infinity;
+        el.points.forEach((point: any) => {
+          maxX = Math.max(maxX, point.x);
+          maxY = Math.max(maxY, point.y);
+        });
+
+        el.points.forEach((point: any) => {
+          minX = Math.min(minX, point.x);
+          minY = Math.min(minY, point.y);
+        });
+        const x1 = minX;
+        const y1 = minY;
+        const x2 = maxX;
+        const y2 = maxY;
+        let type: any;
+        switch (results[0].label) {
+          case 'square':
+            type = 'rectangle';
+            break;
+          case 'circle':
+            type = 'ellipse';
+            break;
+          case 'triangle':
+            type = 'triangle';
+            break;
+          case 'star':
+            type = 'star';
+            break;
+        }
+        let newElement: any;
+        switch (type) {
+          case 'rectangle':
+            newElement = createElement(el.id, x1, y2, x2, y1, type, el.options);
+            break;
+          case 'ellipse':
+            newElement = createElement(
+              el.id,
+              x1 - (x1 - x2) / 2,
+              y1 - (y1 - y2) / 2,
+              x2 + (x1 - x2) / 2 + (x1 - x2) / 2,
+              y2 + (y1 - y2) / 2 + (y1 - y2) / 2,
+              type,
+              el.options
+            );
+            break;
+          case 'triangle':
+            newElement = createElement(
+              el.id,
+              x1 + (x2 - x1) / 2,
+              y2,
+              x2 + (x2 - x1) / 2 + (x1 - x2) / 2,
+              y1,
+              type,
+              el.options
+            );
+            break;
+          case 'star':
+            newElement = createElement(
+              el.id,
+              x1 + (x2 - x1) / 2,
+              y2,
+              x2 + (x2 - x1) / 2 + (x1 - x2) / 2,
+              y1,
+              type,
+              el.options
+            );
+            break;
+        }
+
+        elements[elements.length - 1] = newElement;
+        setElements((prevState: any) => [...prevState], true);
+      }
+    };
 
     if (action === 'writing') return;
 
@@ -1357,7 +1748,7 @@ const Canvas = () => {
   const onZoom = (increment: number) => {
     // const targetScale = Math.min(Math.max(scale + increment, 0.01), 5);
     const targetScale = scale + increment;
-    setCookie('scale', targetScale, { path: `/canvas/${slug}` });
+    setCookie('scale', targetScale, { path: pageURL });
     const duration = 100;
     const startTime = performance.now();
 
@@ -1382,7 +1773,7 @@ const Canvas = () => {
   const [gridType, setGridType] = useState('lined');
 
   const onGridTypeChange = (value: any) => {
-    setCookie('gridType', value, { path: `/canvas/${slug}` });
+    setCookie('gridType', value, { path: pageURL });
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     canvas.classList.remove('dotted-grid');
     canvas.classList.remove('lined-grid');
@@ -1473,6 +1864,17 @@ const Canvas = () => {
     fetchData();
   }, [canvasData]);
 
+  const sendReaction = (reaction: any) => {
+    const reactionSrc = reaction.target.getElementsByTagName('object')[0].data;
+    socketRef!.current!.send(
+      JSON.stringify({
+        type: 'reaction',
+        src: reactionSrc,
+        userid: userData.id,
+      })
+    );
+  };
+
   const handleSocketDemoSend = () => {
     socketRef!.current!.send(
       JSON.stringify({
@@ -1508,8 +1910,40 @@ const Canvas = () => {
     }
   }, [demoMode, socketRef, panOffset, scale]);
 
+  const staticBasicUrl = `${window.location.origin}/static/`;
+  const staticBasicReactionsUrl = `${staticBasicUrl}icons/reactions/`;
+  const basicReactions = [
+    `${staticBasicReactionsUrl}butterfly.svg`,
+    `${staticBasicReactionsUrl}heart-black.svg`,
+    `${staticBasicReactionsUrl}smile.svg`,
+    `${staticBasicReactionsUrl}clown.svg`,
+  ];
+
+  const handleAccessCanvas = (notification: any) => {
+    client
+      .patch(`/api/canvas/update/${slug}/`, {
+        permitted_user: notification.sender.id,
+      })
+      .then(
+        (response) => {
+          console.log(response);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+    client.delete(`/api/notifications/${notification.id}/`).then(() => {
+      console.log('notification deleted');
+    });
+  };
+
   const handleDemoModeChange = (e: any) => {
     setDemoMode(e.target.checked);
+  };
+
+  const handleAutoShapeChange = (e: any) => {
+    setAutoShapeMode(e.target.checked);
+    setCookie('autoShapeMode', e.target.checked, { path: pageURL });
   };
 
   useLayoutEffect(() => {
@@ -1517,7 +1951,7 @@ const Canvas = () => {
   }, [backGroundColor]);
 
   const handleBackgroundColorChange = (e: any) => {
-    setCookie('backGroundColor', e.target.value, { path: `/canvas/${slug}` });
+    setCookie('backGroundColor', e.target.value, { path: pageURL });
     setBackGroundColor(e.target.value);
   };
 
@@ -1528,8 +1962,6 @@ const Canvas = () => {
         name='viewport'
         content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height'
       />
-      {/* <DisableZoom /> */}
-      <Sidebar />
       <Notifications />
       <div
         style={{
@@ -1562,48 +1994,90 @@ const Canvas = () => {
           zIndex: 2,
         }}
       >
-        <input
-          type='radio'
-          id='selection'
-          checked={tool === 'selection'}
-          onChange={() => handleToolChange('selection')}
-        />
-        <label htmlFor='selection'>Sele1ction</label>
-        <input
-          type='radio'
-          id='line'
-          checked={tool === 'line'}
-          onChange={() => handleToolChange('line')}
-        />
-        <label htmlFor='line'>Line</label>
-        <input
-          type='radio'
-          id='rectangle'
-          checked={tool === 'rectangle'}
-          onChange={() => handleToolChange('rectangle')}
-        />
-        <label htmlFor='rectangle'>Rectangle</label>
-        <input
-          type='radio'
-          id='pencil'
-          checked={tool === 'pencil'}
-          onChange={() => handleToolChange('pencil')}
-        />
-        <label htmlFor='pencil'>Pencil</label>
-        <input
-          type='radio'
-          id='text'
-          checked={tool === 'text'}
-          onChange={() => handleToolChange('text')}
-        />
-        <label htmlFor='text'>Text</label>
-        <input
-          type='radio'
-          id='eraser'
-          checked={tool === 'eraser'}
-          onChange={() => handleToolChange('eraser')}
-        />
-        <label htmlFor='eraser'>Eraser</label>
+        <div className='sidebar-tool'>
+          <input
+            type='radio'
+            id='selection'
+            checked={tool === 'selection'}
+            onChange={() => handleToolChange('selection')}
+          />
+          <label htmlFor='selection'>Sele1ction</label>
+          <div className='shape-selection'>
+            <div
+              className='button-sidebar'
+              onClick={() => setIsShapeBox(!isShapeBox)}
+            >
+              <object
+                style={{ pointerEvents: 'none' }}
+                type='image/svg+xml'
+                data={`/static/icons/shapes.svg`}
+                width='24px'
+                id='object'
+              />
+            </div>
+            {isShapeBox && (
+              <div>
+                <input
+                  type='radio'
+                  id='ellipse'
+                  checked={tool === 'ellipse'}
+                  onChange={() => handleToolChange('ellipse')}
+                />
+                <label htmlFor='ellipse'>Ellipse</label>
+                <input
+                  type='radio'
+                  id='triangle'
+                  checked={tool === 'triangle'}
+                  onChange={() => handleToolChange('triangle')}
+                />
+                <label htmlFor='triangle'>Triangle</label>
+                <input
+                  type='radio'
+                  id='line'
+                  checked={tool === 'line'}
+                  onChange={() => handleToolChange('line')}
+                />
+                <label htmlFor='line'>Line</label>
+                <input
+                  type='radio'
+                  id='rectangle'
+                  checked={tool === 'rectangle'}
+                  onChange={() => handleToolChange('rectangle')}
+                />
+                <label htmlFor='rectangle'>Rectangle</label>
+                <input
+                  type='radio'
+                  id='star'
+                  checked={tool === 'star'}
+                  onChange={() => handleToolChange('star')}
+                />
+                <label htmlFor='star'>Star</label>
+              </div>
+            )}
+            <input
+              type='radio'
+              id='pencil'
+              checked={tool === 'pencil'}
+              onChange={() => handleToolChange('pencil')}
+            />
+            <label htmlFor='pencil'>Pencil</label>
+            <input
+              type='radio'
+              id='text'
+              checked={tool === 'text'}
+              onChange={() => handleToolChange('text')}
+            />
+            <label htmlFor='text'>Text</label>
+            <input
+              type='radio'
+              id='eraser'
+              checked={tool === 'eraser'}
+              onChange={() => handleToolChange('eraser')}
+            />
+            <label htmlFor='eraser'>Eraser</label>
+          </div>
+        </div>
+
         <select value={gridType} onChange={(e) => setGridType(e.target.value)}>
           <option value='lined'>Lined</option>
           <option value='dotted'>Dotted</option>
@@ -1623,7 +2097,7 @@ const Canvas = () => {
           onClick={() => {
             onZoom(1 - scale);
             setZoomIndex(10);
-            setCookie('zoomIndex', 10, { path: `/canvas/${slug}` });
+            setCookie('zoomIndex', 10, { path: pageURL });
           }}
         >
           {new Intl.NumberFormat('en-GB', { style: 'percent' }).format(scale)}{' '}
@@ -1638,7 +2112,7 @@ const Canvas = () => {
         <button
           onClick={() => {
             setPanOffset({ x: 0, y: 0 });
-            setCookie('panOffset', { x: 0, y: 0 }, { path: `/canvas/${slug}` });
+            setCookie('panOffset', { x: 0, y: 0 }, { path: pageURL });
           }}
         >
           Reset
@@ -1682,6 +2156,18 @@ const Canvas = () => {
         onTouchMove={handleMouseMove}
         onTouchEnd={handleMouseUp}
         style={{ position: 'absolute', zIndex: 1 }}
+      />
+      <canvas
+        ref={canvasMiniRef}
+        width={64}
+        height={64}
+        style={{
+          display: 'none',
+          position: 'absolute',
+          zIndex: 100,
+          backgroundColor: '#fff',
+          top: '40vh',
+        }}
       />
       <div ref={colorsRef} className='color-picker'>
         <input
@@ -1727,36 +2213,120 @@ const Canvas = () => {
           onBlur={handleBackgroundColorChange}
         />
       </div>
-      <div>
-        <input
-          style={{ position: 'absolute', top: '90px', zIndex: 100 }}
-          type='checkbox'
-          onChange={handleDemoModeChange}
-        />
+      <div style={{ position: 'absolute', top: '90px', zIndex: 100 }}>
+        <input type='checkbox' onChange={handleDemoModeChange} />
+        Demo Mode
+      </div>
+      <div style={{ position: 'absolute', top: '120px', zIndex: 100 }}>
+        <input type='checkbox' onChange={handleAutoShapeChange} />
+        AutoShape
+      </div>
+      {onlineMembers.map((member: any) => (
+        <div
+          id={`cursor-${member.id}`}
+          className='cursor_container'
+          style={{
+            zIndex: 100,
+            position: 'absolute',
+            width: 30,
+            height: 30,
+          }}
+        >
+          <img className='cursor_avatar' src={member.avatar} />
+          <object
+            style={{
+              width: 25,
+              height: 25,
+              position: 'absolute',
+              zIndex: 1,
+            }}
+            data='/static/icons/cursor.svg'
+            type='image/svg+xml'
+            className='cursor'
+          ></object>
+        </div>
+      ))}
+
+      <div
+        style={{
+          position: 'absolute',
+          backgroundColor: '#fff',
+          width: 160,
+          height: 40,
+          zIndex: 100,
+          bottom: 0,
+          right: 0,
+          display: 'flex',
+        }}
+        className='reaction-choose-container'
+      >
+        {basicReactions.map((reaction: any) => (
+          <div
+            style={{
+              width: 40,
+              height: '100%',
+              zIndex: 100,
+              cursor: 'pointer',
+            }}
+            key={reaction}
+            onClick={sendReaction}
+          >
+            <object
+              style={{ pointerEvents: 'none', width: '100%', height: '100%' }}
+              type='image/svg+xml'
+              data={reaction}
+              className='reaction-choose'
+            />
+          </div>
+        ))}
       </div>
       <div
-        className='cursor_container'
         style={{
-          zIndex: 100,
-          position: 'absolute',
-          width: 30,
-          height: 30,
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
         }}
       >
-        <img className='cursor_avatar' />
-        <object
+        <div
+          onClick={(e) => e.stopPropagation()}
           style={{
-            width: 25,
-            height: 25,
             position: 'absolute',
-            zIndex: 1,
+            bottom: 0,
+            // left: '40%',
+            width: 100,
+            height: '100%',
+            zIndex: 100,
+            pointerEvents: 'none',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
           }}
-          data='/static/icons/cursor.svg'
-          type='image/svg+xml'
-          className='cursor'
-        ></object>
+        >
+          {reactions.map((reaction: any, index: any) => (
+            <div
+              key={index}
+              className={
+                reaction.src ===
+                `http://127.0.0.1:8001/static/icons/reactions/clown.svg`
+                  ? 'clown'
+                  : 'reaction-animation'
+              }
+            >
+              <object
+                style={{
+                  pointerEvents: 'none',
+                }}
+                type='image/svg+xml'
+                data={reaction.src}
+                className='reaction'
+              />
+            </div>
+          ))}
+        </div>
       </div>
-
       <div className='list-choice'>
         <div className='list-choice-title'>{fontFamily}</div>
         <div className='list-choice-objects'>
@@ -1766,7 +2336,7 @@ const Canvas = () => {
               onClick={() => {
                 setFontFamily(font.family);
                 setCookie('fontFamily', font.family, {
-                  path: `/canvas/${slug}`,
+                  path: pageURL,
                 });
               }}
             >
@@ -1777,6 +2347,17 @@ const Canvas = () => {
         </div>
       </div>
 
+      <div className='notifications-container'>
+        {notifications.map((notification: any) => (
+          <div
+            className='notification-container'
+            onClick={() => handleAccessCanvas(notification)}
+          >
+            <div>{notification.type}</div>
+            <div>{notification.sender.email}</div>
+          </div>
+        ))}
+      </div>
       <div
         className='loading_container'
         ref={loadingRef}
@@ -1797,6 +2378,17 @@ const Canvas = () => {
           type='image/svg+xml'
         ></object>
       </div>
+      {isModalWindowRequest && (
+        <div className='modal-window-request'>
+          <div
+            onClick={handleAccessRequest}
+            className='modal-window-request-button'
+          >
+            Request access
+          </div>
+        </div>
+      )}
+      {isNotFound && <div className='modal-window-not-found'>NOT FOUND</div>}
     </div>
   );
 };

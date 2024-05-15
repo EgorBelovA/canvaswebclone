@@ -27,9 +27,15 @@ class CanvasViewApiUpdate(UpdateAPIView):
         data = request.data
         canvas = Canvas.objects.get(slug=kwargs.get("slug"))
         font_name = data.get('font', None)
-        font = Font.objects.get(name=font_name)
-        if font is not None:
+        if font_name is not None:
+            font = Font.objects.get(name=font_name)
             canvas.fonts.add(font)
+
+        permitted_user_id = data.get('permitted_user', None)
+        if permitted_user_id is not None:
+            permitted_user = CustomUser.objects.get(id=permitted_user_id)
+            canvas.permitted_users.add(permitted_user)
+        
         canvas.save()
 
         return Response(status=status.HTTP_200_OK)
@@ -40,14 +46,19 @@ class CanvasView(APIView):
     permission_classes = [IsAuthenticated, ]
     def get(self, request, *args, **kwargs):
         slug = kwargs.get("slug")
-        canvas = Canvas.objects.get(slug=slug)
-        if canvas.permitted_users.filter(id=request.user.id).exists():
+        try:
+            canvas = Canvas.objects.get(slug=slug)
+        except Canvas.DoesNotExist:
+            canvas = None
+        if canvas is not None:
             serializer = CanvasSerializer(canvas)
-            elements = canvas.elements.all()
-            return Response({"canvas": serializer.data, "elements": CanvasElementSerializer(elements, many=True).data})
-        return Response(status=status.HTTP_403_FORBIDDEN)
+            if canvas.permitted_users.filter(id=request.user.id).exists():
+                elements = canvas.elements.all()
+                return Response({"canvas": serializer.data, "elements": CanvasElementSerializer(elements, many=True).data})
+            return Response(status=status.HTTP_403_FORBIDDEN, data={tuple(serializer.data.get("admins"))})
+        return Response(status=status.HTTP_404_NOT_FOUND)
     
-    def post(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         slug = kwargs.get("slug")
         canvas = Canvas.objects.get(slug=slug) 
         element = request.data.get("element", None)
@@ -62,6 +73,19 @@ class CanvasView(APIView):
             return Response(status=status.HTTP_201_CREATED)
             
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+    
+class CanvasViewApiCreate(APIView):
+    authentication_classes = [SessionAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+    def post(self, request):
+        title = request.data.get("title", None)
+        canvas = Canvas.objects.create(title=title)
+        canvas.permitted_users.add(request.user)
+        canvas.admins.add(request.user)
+        canvas.save()
+        return Response(status=status.HTTP_201_CREATED)
 
     # def put(self, request, *args, **kwargs):
     #     slug = kwargs.get("slug")
@@ -88,6 +112,19 @@ class AllCanvasView(APIView):
     #     serializer = CanvasSerializer(data=request.data)
     #     if serializer.is_valid(raise_exception=True):
     #         serializer.save()
+
+class NotificationView(APIView):
+    authentication_classes = [SessionAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+    def get(self, request):
+        queryset = Notification.objects.filter(recipient=request.user)
+        serializer = NotificationSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        queryset = Notification.objects.filter(pk=kwargs.get("pk"))
+        queryset.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 

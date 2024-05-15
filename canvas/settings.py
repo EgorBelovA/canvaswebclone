@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'django_email_verification',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
     'api.apps.ApiConfig',
     'account_app.apps.AccountAppConfig',
@@ -48,6 +50,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+    'social_django.middleware.SocialAuthExceptionMiddleware',
     # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
@@ -55,17 +58,18 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'canvas.urls'
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 # CORS_ALLOWED_ORIGINS = [
 #     "http://127.0.0.1:8001",
 #     "https://api.yookassa.ru",
 # ]
 
-CORS_ORIGIN_WHITELIST = [
-    "http://127.0.0.1:8001",
-    # "https://api.yookassa.ru/v3/payments/' ",
-]
+# CORS_ORIGIN_WHITELIST = [
+#     "http://127.0.0.1:8001",
+#     # "https://api.yookassa.ru/v3/payments/' ",
+# ]
 
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
@@ -115,10 +119,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
      'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
      'REFRESH_TOKEN_LIFETIME': timedelta(minutes=1),
-     'ROTATE_REFRESH_TOKENS': True,
-     'BLACKLIST_AFTER_ROTATION': True
+     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
 # BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL', default='http://localhost:8001')
@@ -147,6 +151,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },

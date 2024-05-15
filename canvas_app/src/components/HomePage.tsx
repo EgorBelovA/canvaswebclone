@@ -15,6 +15,7 @@ import Pricing from './Pricing';
 import Contacts from './Contacts';
 import PixelBattle from './PixelBattle';
 import UserProfile from './UserProfile';
+import JWTAuth from './JWTAuth';
 
 export default class HomePage extends Component {
   constructor(props: any) {
@@ -29,10 +30,8 @@ export default class HomePage extends Component {
           <Route path='signup' element={<SignUp />} />
           <Route path='login' element={<Login />} />
           <Route path='dashboard' element={<Dashboard />} />
-          {/* <Route element={<PrivateRoutes />}> */}
           <Route path='canvas/:slug/' element={<Canvas />} />
           <Route path='profile' element={<UserProfile />} />
-          {/* </Route> */}
           <Route path='legal/privacy-policy' element={<PrivacyPolicy />} />
           <Route path='legal/terms-and-conditions' element={<TermsOfUse />} />
           <Route path='choose-county-region' element={<CountryRegion />} />
@@ -41,6 +40,7 @@ export default class HomePage extends Component {
           <Route path='pricing' element={<Pricing />} />
           <Route path='contacts' element={<Contacts />} />
           <Route path='pixel-battle' element={<PixelBattle />} />
+          <Route path='jwt/auth' element={<JWTAuth />} />
         </Routes>
       </Router>
     );

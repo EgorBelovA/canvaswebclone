@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../scss/components/user_form.scss';
 import { useNavigate } from 'react-router-dom';
-// import G from './google_logo.svg';
+// import BackgroundButterflies from './BackgroundButterflies';
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
 axios.defaults.xsrfCookieName = 'csrftoken';
@@ -73,6 +73,11 @@ const SignUp = () => {
       <head>
         <title>Sign Up | Canvas</title>
       </head>
+      {/* <BackgroundButterflies
+        numberOfButterflies={50}
+        styleClassName='butterfly-background'
+        fileName='/static/icons/butterfly_BG.svg'
+      /> */}
 
       <form id='offset registration_form' onSubmit={(e) => e.preventDefault()}>
         <fieldset className='form'>
