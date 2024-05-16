@@ -1,5 +1,6 @@
 import Footer from './Footer';
 import Header from './Header';
+import '../scss/components/home.scss';
 
 const TermsOfUse = () => {
   //   const termsofuse = [

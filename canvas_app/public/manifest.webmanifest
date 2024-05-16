@@ -1,0 +1,29 @@
+{
+  "name": "Canvas",
+  "short_name": "Canvas",
+  "description": "Canvas PWA",
+  "display": "fullscreen",
+  "start_url": "/",
+  "background_color": "#000",
+  "theme_color": "#000",
+  "icons": [
+    {
+      "src": "icons/clown-face-svgrepo-com (1).svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/star (1).png",
+      "sizes": "980x936",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/star (1).png",
+      "sizes": "980x936",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}

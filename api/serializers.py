@@ -27,3 +27,9 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('__all__')
+
+
+class VoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VoiceRecord
+        fields = ('__all__')

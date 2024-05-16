@@ -27,6 +27,7 @@ urlpatterns = [
     path('font/', FontUploadView.as_view(), name='font_upload'),
     path('notifications/', NotificationView.as_view(), name='notifications'),
     path('notifications/<int:pk>/', NotificationView.as_view(), name='notifications_delete'),
+    path('voice-record/', VoiceRecordUploadView.as_view(), name='voice_record'),
 
     #Payment
     path('create-payment/', CreatePaymentView.as_view()),

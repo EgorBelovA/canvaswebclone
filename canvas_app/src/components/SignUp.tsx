@@ -59,19 +59,10 @@ const SignUp = () => {
       });
   };
 
-  //   const google_link =
-  //     'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&state=api&redirect_uri=http://127.0.0.1:8001/api/google/callback&include_granted_scopes=true&client_id=274441604369-cv480ffap251aptbhfc9jj320okprcun.apps.googleusercontent.com&scope=https://www.googleapis.com/auth/userinfo.email&https://www.googleapis.com/auth/userinfo.profile&openid';
-
-  //   const GoogleRegister = () => {
-  //     client.get(google_link).then((e) => {
-  //       console.log(e);
-  //     });
-  //   };
-
   return (
     <div className='page_container'>
       <head>
-        <title>Sign Up | Canvas</title>
+        <title>Sign Up - Canvas</title>
       </head>
       {/* <BackgroundButterflies
         numberOfButterflies={50}

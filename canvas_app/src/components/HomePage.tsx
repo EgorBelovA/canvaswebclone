@@ -6,16 +6,16 @@ import SignUp from './SignUp';
 import Login from './Login';
 import EmailVerification from './EmailVerification';
 import Dashboard from './Dashboard';
-// import PrivateRoutes from './PrivateRoutes';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsOfUse from './TermsOfUse';
 import CountryRegion from './CountyRegion';
 import Legal from './Legal';
-import Pricing from './Pricing';
+import Premium from './Premium';
 import Contacts from './Contacts';
 import PixelBattle from './PixelBattle';
 import UserProfile from './UserProfile';
 import JWTAuth from './JWTAuth';
+import Download from './Download';
 
 export default class HomePage extends Component {
   constructor(props: any) {
@@ -37,10 +37,11 @@ export default class HomePage extends Component {
           <Route path='choose-county-region' element={<CountryRegion />} />
           <Route path='legal' element={<Legal />} />
           <Route path='email-verification' element={<EmailVerification />} />
-          <Route path='pricing' element={<Pricing />} />
+          <Route path='premium' element={<Premium />} />
           <Route path='contacts' element={<Contacts />} />
           <Route path='pixel-battle' element={<PixelBattle />} />
           <Route path='jwt/auth' element={<JWTAuth />} />
+          <Route path='download' element={<Download />} />
         </Routes>
       </Router>
     );

@@ -7,7 +7,7 @@ import '../scss/components/home.scss';
 import { useState } from 'react';
 import BackgroundButterflies from './BackgroundButterflies';
 
-const Pricing = () => {
+const Premium = () => {
   const elts = {
     text1: document.getElementById('text1'),
     text2: document.getElementById('text2'),
@@ -88,7 +88,7 @@ const Pricing = () => {
     }
   }
 
-  const free_plan = ['4 Canvases', 'Basic Support'];
+  // const free_plan = ['4 Canvases', 'Basic Support'];
   const premium_plan = ['10 Canvases', 'Support 24h'];
 
   const [FAQ, setFAQ] = useState('FAQ');
@@ -127,23 +127,59 @@ const Pricing = () => {
       <div className='index-main'>
         <Header />
         <div className='pricing-cards-container'>
-          <div>
-            <PricingCard
-              title='Free'
-              description='Many opportunities for teamwork'
-              price='Free'
-              list={free_plan}
-            />
-          </div>
-          <div>
-            <PricingCard
-              title='Premium'
-              description='A little more'
-              price='19 RUB/month'
-              list={premium_plan}
-              paymentFlag={true}
-            />
-          </div>
+          <PricingCard
+            title='Individual'
+            description='A little more'
+            price='19 RUB/month'
+            list={premium_plan}
+            paymentFlag={true}
+          />
+          <PricingCard
+            title='Duo'
+            description='Everything'
+            price='29 RUB/month'
+            list={premium_plan}
+            paymentFlag={true}
+          />
+          <PricingCard
+            title='Team'
+            description='Everything'
+            price='39 RUB/month'
+            list={premium_plan}
+            paymentFlag={true}
+          />
+        </div>
+        //make comparative table of plans
+        <div className='comparative-table-container'>
+          <tbody>
+            <tr>
+              <td>
+                <div className='comparative-table-title'>Individual</div>
+                <div className='comparative-table-description'>
+                  A little more
+                </div>
+              </td>
+              <td>
+                <div className='comparative-table-title'>Duo</div>
+                <div className='comparative-table-description'>Everything</div>
+              </td>
+              <td>
+                <div className='comparative-table-title'>Team</div>
+                <div className='comparative-table-description'>Everything</div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div className='comparative-table-price'>19 RUB/month</div>
+              </td>
+              <td>
+                <div className='comparative-table-price'>29 RUB/month</div>
+              </td>
+              <td>
+                <div className='comparative-table-price'>39 RUB/month</div>
+              </td>
+            </tr>
+          </tbody>
         </div>
         <div className='pricing-faq-container'>
           <div id='container'>
@@ -165,4 +201,4 @@ const Pricing = () => {
   );
 };
 
-export default Pricing;
+export default Premium;

@@ -56,7 +56,7 @@ const Login = () => {
   return (
     <div className='page_container'>
       <head>
-        <title>Login | Canvas</title>
+        <title>Login - Canvas</title>
       </head>
       {/* <BackgroundButterflies
         numberOfButterflies={50}

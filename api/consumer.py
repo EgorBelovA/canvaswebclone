@@ -6,6 +6,7 @@ from .models import Canvas, Notification
 from account_app.models import CustomUser
 from channels.db import database_sync_to_async
 from django.core.files.storage import FileSystemStorage
+from .serializers import NotificationSerializer
 
 class CanvasConsumer(AsyncConsumer):
     async def websocket_connect(self, event):
@@ -63,7 +64,7 @@ class NotificationConsumer(AsyncConsumer):
         await self.channel_layer.group_send(
             self.notification_room,{
                 "type": "notification_message",
-                "text" : initial_data
+                "text" : notification
             }
         )
 
@@ -75,6 +76,8 @@ class NotificationConsumer(AsyncConsumer):
             recipient=CustomUser.objects.get(id=int(data["recipientID"])),
         )
         notification.save()
+        notification_serializer = NotificationSerializer(notification)
+        notification = json.dumps(notification_serializer.data)
         return notification
 
     async def notification_message(self ,event):

@@ -41,8 +41,7 @@ const Dashboard = () => {
       });
   }, []);
 
-  function submitLogout(e: any) {
-    e.preventDefault();
+  function submitLogout() {
     client.post('/api/logout/').then(function () {
       localStorage.clear();
       navigate('/login/');
@@ -84,11 +83,9 @@ const Dashboard = () => {
         <h2 className='title'>{userData.email}</h2>
       </div>
       <div>
-        <form onSubmit={(e) => submitLogout(e)}>
-          <button className='logout-button' type='submit'>
-            Log out
-          </button>
-        </form>
+        <div className='logout-button' onSubmit={submitLogout}>
+          Log out
+        </div>
         <button
           onClick={handleCanvasModal}
           type='button'

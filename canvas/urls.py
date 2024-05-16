@@ -35,11 +35,12 @@ urlpatterns = [
     path('legal/privacy-policy/', index_view, name='privacy-policy'),
     path('legal/terms-and-conditions/', index_view, name='terms-and-conditions'),
     path('legal/', index_view, name='legal'),
-    path('pricing/', index_view, name='pricing'),
+    path('premium/', index_view, name='premium'),
     path('contacts/', index_view, name='contact'),
     path('pixel-battle/', index_view, name='pixel-battle'),
     path('profile/', index_view, name='profile'),
     path('jwt/auth/', index_view, name='jwt-auth'),
+    path('download/', index_view, name='download'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
 

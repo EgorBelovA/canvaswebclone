@@ -2,6 +2,8 @@ from django.db import models
 import uuid
 import glob, random
 from nanoid import generate
+import random
+import string
 
 def random_default_image():
     file_name_path = [f for f in glob.glob("media/default_images_canvas/*.jpg")]
@@ -24,6 +26,7 @@ class Canvas(models.Model):
     image = models.ImageField(upload_to='canvas_image/', default=random_default_image, blank=True, null=True)
     elements = models.ManyToManyField('CanvasElement', blank=True, related_name='element_canvas')
     fonts = models.ManyToManyField('Font', blank=True, related_name='font_canvas', db_index=True)
+    voice_records = models.ManyToManyField('VoiceRecord', blank=True, related_name='voice_record_canvas', db_index=True)
 
 
     class Meta:
@@ -65,3 +68,25 @@ class SpotifyToken(models.Model):
     access_token = models.CharField(max_length=150)
     expires_in = models.DateTimeField()
     token_type = models.CharField(max_length=50)
+
+
+
+class VoiceRecord(models.Model):
+    user = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to='voice_records/', blank=True, null=True)
+
+class Placemark(models.Model):
+    user = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    color = models.CharField(max_length=7, default='#000000')
+
+    def save(self, *args, **kwargs):
+        if not self.color or self.color == '#000000':
+            self.color = self.generate_random_color()
+        super(Placemark, self).save(*args, **kwargs)
+
+    def generate_random_color(self):
+        return '#{:06x}'.format(random.randint(0, 0xFFFFFF))

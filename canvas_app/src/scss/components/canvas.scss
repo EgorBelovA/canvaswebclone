@@ -300,16 +300,22 @@ $cursorColor: #0072ce !default;
 }
 
 .sidebar-tool {
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
   position: absolute;
   margin-top: 50vh;
   height: 200px;
+  width: 100px;
   z-index: 300;
+  background-color: #fff;
 }
 
 .shape-selection {
+  display: flex;
+  flex-direction: column;
+
   user-select: none;
   -webkit-user-select: none;
   cursor: pointer;
@@ -330,14 +336,23 @@ $cursorColor: #0072ce !default;
   // }
 }
 
+//set variable for viewport
+$viewport-width: 100vw;
+$viewport-height: 100vh;
 .reaction-animation {
   position: absolute;
+  left: 0;
   bottom: -70px;
   width: 40px;
   height: 40px;
   z-index: 100;
   offset-path: path('M0,0 C40,-700 400,-700 400,0');
   animation: parabolicJump 2s linear;
+
+  @media screen and (max-width: 400px) {
+    //use viewport height and width to set offset-path
+    offset-path: path('M0,0 C40,-500 300,-500 300,0');
+  }
 }
 
 @keyframes parabolicJump {
@@ -352,6 +367,12 @@ $cursorColor: #0072ce !default;
     offset-rotate: 180deg reverse;
     offset-distance: 100%;
   }
+}
+
+.reactions-jump-container {
+  position: absolute;
+  height: 100vh;
+  width: 250px;
 }
 
 .clown {

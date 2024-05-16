@@ -20,7 +20,6 @@ const HomePage: React.FC = () => {
   };
 
   useLayoutEffect(() => {
-    console.log('LANG');
     if (cookies.language !== undefined) {
       setLanguage(languages[cookies.language]);
     } else {
@@ -30,23 +29,29 @@ const HomePage: React.FC = () => {
 
   return (
     <div className='index-container'>
+      <title>Canvas - Space for creativity</title>
+
       <video
-        src='/static/wings.mp4'
         id='background-image'
-        autoPlay
-        loop
-        muted
-      />
+        autoPlay={true}
+        loop={true}
+        muted={true}
+        disablePictureInPicture={true}
+        webkit-playsinline={true}
+        playsInline={true}
+      >
+        <source src='/static/wings.mp4' type='video/mp4' />
+      </video>
       <BackgroundButterflies
         styleClassName='circle-container'
         numberOfButterflies={20}
         fileName='/static/icons/logo_wings.svg'
       />
-
       <div className='index-main'>
         <Header />
         <a href='/dashboard/' id='main-quote'>
           {/* {language.mainPageQuote} */}
+          The outside world is a reflection of the inside one
         </a>
         <div
           style={{

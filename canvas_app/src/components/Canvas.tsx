@@ -49,7 +49,6 @@ const drawStar: any = (x1: any, y1: any, x2: any, y2: any, n: any) => {
   const rotationAngle = (18 * Math.PI) / 180;
 
   const angleIncrement = (2 * Math.PI) / n;
-  console.log(angleIncrement);
 
   for (let i = 0; i < n; i++) {
     const angle = i * angleIncrement - rotationAngle;
@@ -70,9 +69,6 @@ const drawStar: any = (x1: any, y1: any, x2: any, y2: any, n: any) => {
   return points;
 };
 
-// Example usage:
-const starPoints = drawStar(100, 100, 200, 200, 5);
-console.log(starPoints);
 const generator = rough.generator();
 
 const createElement = (
@@ -245,27 +241,27 @@ const getElementAtPosition = (x: any, y: any, elements: any) => {
     .find((element: any) => element.position !== null);
 };
 
-// const adjustElementCoordinates = (element: any) => {
-//   const { type, x1, y1, x2, y2 } = element;
-//   if (
-//     type === 'rectangle' ||
-//     type === 'ellipse' ||
-//     type === 'triangle' ||
-//     type === 'star'
-//   ) {
-//     const minX = Math.min(x1, x2);
-//     const maxX = Math.max(x1, x2);
-//     const minY = Math.min(y1, y2);
-//     const maxY = Math.max(y1, y2);
-//     return { x1: minX, y1: minY, x2: maxX, y2: maxY };
-//   } else {
-//     if (x1 < x2 || (x1 === x2 && y1 < y2)) {
-//       return { x1, y1, x2, y2 };
-//     } else {
-//       return { x1: x2, y1: y2, x2: x1, y2: y1 };
-//     }
-//   }
-// };
+const adjustElementCoordinates = (element: any) => {
+  const { type, x1, y1, x2, y2 } = element;
+  if (
+    type === 'rectangle' ||
+    type === 'ellipse' ||
+    type === 'triangle' ||
+    type === 'star'
+  ) {
+    const minX = Math.min(x1, x2);
+    const maxX = Math.max(x1, x2);
+    const minY = Math.min(y1, y2);
+    const maxY = Math.max(y1, y2);
+    return { x1: minX, y1: minY, x2: maxX, y2: maxY };
+  } else {
+    if (x1 < x2 || (x1 === x2 && y1 < y2)) {
+      return { x1, y1, x2, y2 };
+    } else {
+      return { x1: x2, y1: y2, x2: x1, y2: y1 };
+    }
+  }
+};
 
 const cursorForPosition = (position: any) => {
   switch (position) {
@@ -377,8 +373,7 @@ const drawElement = (roughCanvas: any, context: any, element: any) => {
   }
 };
 
-// const adjustmentRequired = (type: any) =>
-//   ['line', 'rectangle', 'ellipse', 'triangle', 'star'].includes(type);
+const adjustmentRequired = (type: any) => ['line', 'rectangle'].includes(type);
 
 const usePressedKeys = () => {
   const [pressedKeys, setPressedKeys] = useState(new Set());
@@ -516,7 +511,6 @@ const Canvas = () => {
     const pasteImg = async () => {
       try {
         const clipboardItems = await navigator.clipboard.read();
-        console.log(clipboardItems);
         if (clipboardItems.length > 0) {
           const clipboardItem = clipboardItems[0];
           const types = await clipboardItem.types;
@@ -644,7 +638,6 @@ const Canvas = () => {
   }, [scale]);
 
   const onStrokeColorUpdate = (e: any) => {
-    console.log(pageURL);
     setStrokeColor(e.target.value);
     setCookie('strokeColor', e.target.value);
   };
@@ -743,10 +736,66 @@ const Canvas = () => {
     );
   };
 
+  const [voiceRecord, setVoiceRecord] = useState<boolean>(false);
+
+  const handleVoiceRecordChange = (e: any) => {
+    setVoiceRecord(e.target.checked);
+  };
+
+  useEffect(() => {
+    let mediaRecorder: any;
+    let stream: MediaStream;
+
+    if (voiceRecord) {
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then((userStream) => {
+            stream = userStream;
+            mediaRecorder = new MediaRecorder(stream) as any;
+
+            let chunks: any[] = [];
+            mediaRecorder.ondataavailable = (e: any) => {
+              chunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+              const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+              chunks = [];
+              const audioSrc = URL.createObjectURL(audioBlob);
+              const audio = new Audio(audioSrc);
+              audio.play();
+              const formData = new FormData();
+              formData.append('file', audioBlob);
+              formData.append('name', 'voice');
+              client.post('/api/voice-record/', formData);
+              console.log(audioSrc);
+            };
+
+            mediaRecorder.start();
+          })
+          .catch((error) => {
+            console.error('Error accessing audio stream:', error);
+          });
+      } else {
+        console.log('getUserMedia not supported');
+      }
+    }
+
+    return () => {
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+      }
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [voiceRecord]);
+
   useLayoutEffect(() => {
-    const data2 = new Map(Object.entries(data));
+    const dataMap = new Map(Object.entries(data));
     const el = [];
-    for (let elem of data2) {
+    for (let elem of dataMap) {
       let e = elem[1] as any;
       el.push(e.element);
     }
@@ -929,6 +978,7 @@ const Canvas = () => {
     const handleMessage = (e: any) => {
       const data = JSON.parse(e.data);
       console.log(data);
+      notifyMe(data);
     };
 
     socketUserRef!.current!.onclose = (e: any) => {
@@ -948,7 +998,7 @@ const Canvas = () => {
         false
       );
     };
-  }, [userData]);
+  }, [userData, canvasData]);
 
   useEffect(() => {
     const websocket_url = `${wsProtocol}://${location.host}/canvas/${slug}/`;
@@ -1556,14 +1606,14 @@ const Canvas = () => {
       }
 
       const index = selectedElement.id;
-      // const { id, type } = elements[index];
-      // if (
-      //   (action === 'drawing' || action === 'resizing') &&
-      //   adjustmentRequired(type)
-      // ) {
-      // const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
-      // updateElement(id, x1, y1, x2, y2, type, null);
-      // }
+      const { id, type } = elements[index];
+      if (
+        (action === 'drawing' || action === 'resizing') &&
+        adjustmentRequired(type)
+      ) {
+        const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
+        updateElement(id, x1, y1, x2, y2, type, null);
+      }
       try {
         client.patch(`/api/canvas/${slug}/`, {
           element: elements[index],
@@ -1933,7 +1983,9 @@ const Canvas = () => {
         }
       );
     client.delete(`/api/notifications/${notification.id}/`).then(() => {
-      console.log('notification deleted');
+      setNotifications((prevNotifications: any) =>
+        prevNotifications.filter((n: any) => n.id !== notification.id)
+      );
     });
   };
 
@@ -1953,6 +2005,23 @@ const Canvas = () => {
   const handleBackgroundColorChange = (e: any) => {
     setCookie('backGroundColor', e.target.value, { path: pageURL });
     setBackGroundColor(e.target.value);
+  };
+
+  const notifyMe = (e: any) => {
+    setNotifications((prevNotifications: any) => [...prevNotifications, e]);
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        const notification = new Notification('Request access to canvas', {
+          body: `${e?.sender.email}`,
+          icon: '/static/icons/logo_wings.svg',
+        });
+        notification.addEventListener('show', () => {
+          setTimeout(() => {
+            notification.close();
+          }, 6000);
+        });
+      }
+    });
   };
 
   return (
@@ -1995,13 +2064,15 @@ const Canvas = () => {
         }}
       >
         <div className='sidebar-tool'>
-          <input
-            type='radio'
-            id='selection'
-            checked={tool === 'selection'}
-            onChange={() => handleToolChange('selection')}
-          />
-          <label htmlFor='selection'>Sele1ction</label>
+          <div>
+            <input
+              type='radio'
+              id='selection'
+              checked={tool === 'selection'}
+              onChange={() => handleToolChange('selection')}
+            />
+            <label htmlFor='selection'>Sele1ction</label>
+          </div>
           <div className='shape-selection'>
             <div
               className='button-sidebar'
@@ -2054,27 +2125,33 @@ const Canvas = () => {
                 <label htmlFor='star'>Star</label>
               </div>
             )}
-            <input
-              type='radio'
-              id='pencil'
-              checked={tool === 'pencil'}
-              onChange={() => handleToolChange('pencil')}
-            />
-            <label htmlFor='pencil'>Pencil</label>
-            <input
-              type='radio'
-              id='text'
-              checked={tool === 'text'}
-              onChange={() => handleToolChange('text')}
-            />
-            <label htmlFor='text'>Text</label>
-            <input
-              type='radio'
-              id='eraser'
-              checked={tool === 'eraser'}
-              onChange={() => handleToolChange('eraser')}
-            />
-            <label htmlFor='eraser'>Eraser</label>
+            <div>
+              <input
+                type='radio'
+                id='pencil'
+                checked={tool === 'pencil'}
+                onChange={() => handleToolChange('pencil')}
+              />
+              <label htmlFor='pencil'>Pencil</label>
+            </div>
+            <div>
+              <input
+                type='radio'
+                id='text'
+                checked={tool === 'text'}
+                onChange={() => handleToolChange('text')}
+              />
+              <label htmlFor='text'>Text</label>
+            </div>
+            <div>
+              <input
+                type='radio'
+                id='eraser'
+                checked={tool === 'eraser'}
+                onChange={() => handleToolChange('eraser')}
+              />
+              <label htmlFor='eraser'>Eraser</label>
+            </div>
           </div>
         </div>
 
@@ -2221,6 +2298,10 @@ const Canvas = () => {
         <input type='checkbox' onChange={handleAutoShapeChange} />
         AutoShape
       </div>
+      <div style={{ position: 'absolute', top: '150px', zIndex: 100 }}>
+        <input type='checkbox' onChange={handleVoiceRecordChange} />
+        Voice Record
+      </div>
       {onlineMembers.map((member: any) => (
         <div
           id={`cursor-${member.id}`}
@@ -2291,19 +2372,7 @@ const Canvas = () => {
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            // left: '40%',
-            width: 100,
-            height: '100%',
-            zIndex: 100,
-            pointerEvents: 'none',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexDirection: 'column',
-          }}
+          className='reactions-jump-container'
         >
           {reactions.map((reaction: any, index: any) => (
             <div

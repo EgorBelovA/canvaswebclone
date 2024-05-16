@@ -144,6 +144,19 @@ class FontUploadView(APIView):
         queryset = Font.objects.filter(owner=request.user)
         serializer = FontSerializer(queryset, many=True)
         return Response(serializer.data)
+    
+
+class VoiceRecordUploadView(APIView):
+    authentication_classes = [SessionAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+    def post(self, request):
+        fs = FileSystemStorage(location='media/voice_records')
+        file_name = fs.save(f"{uuid.uuid4()}.{request.data['file'].name.split('.')[-1]}.mp3", request.data['file'])
+        request.data['file'] = fs.url(file_name)
+        obj = VoiceRecord.objects.create(file=file_name, user=request.user)
+        obj.save()
+
+        return Response(status=status.HTTP_201_CREATED)
 
 
 def pageError(request, exception):
@@ -257,3 +270,7 @@ class CurrentSong(APIView):
         }
 
         return Response(song, status=status.HTTP_200_OK)
+    
+
+
+

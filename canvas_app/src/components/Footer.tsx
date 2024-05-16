@@ -2,7 +2,8 @@
 import '../scss/partials/_navbar.scss';
 import '../scss/components/home.scss';
 import { useState } from 'react';
-import Country from './Country';
+// import Country from './Country';
+import '../scss/components/home.scss';
 
 const Footer = (props: any) => {
   const [isRegionChange, setIsRegionChange] = useState(false);
@@ -18,16 +19,17 @@ const Footer = (props: any) => {
 
   // const region = 'Russia';
 
-  const languages = [
-    { code: 'ru', name: 'Русский', slug: 'russian' },
-    { code: 'en', name: 'English', slug: 'english' },
-    { code: 'ua', name: 'Українська', slug: 'ukranian' },
-  ];
+  // const languages = [
+  //   { code: 'ru', name: 'Русский', slug: 'russian' },
+  //   { code: 'en', name: 'English', slug: 'english' },
+  //   { code: 'ua', name: 'Українська', slug: 'ukranian' },
+  // ];
 
   // const regionName = new Intl.DisplayNames(['en'], { type: 'region' });
   // const region = regionName.of(region);
 
-  // const IS_GEOLOCATION_SUPPORTED = !!navigator?.geolocation?.getCurrentPosition && false;
+  // const IS_GEOLOCATION_SUPPORTED =
+  // !!navigator?.geolocation?.getCurrentPosition && false;
 
   const regionChange = () => {
     setIsRegionChange(!isRegionChange);
@@ -39,7 +41,7 @@ const Footer = (props: any) => {
       <div className='footer'>
         <div className='footer-copyright'>
           {/* <div>Copyright © 2024 Canvas. All Rights Reserved.</div> */}
-          <div>{props.language.copyright}</div>
+          {/* <div>{props.language.copyright}</div> */}
           <div>
             <a href='/legal/privacy-policy/'>Privacy Policy</a>
             &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -47,7 +49,7 @@ const Footer = (props: any) => {
             &nbsp;&nbsp;|&nbsp;&nbsp;
             <a href='/legal/'>Legal</a>
             &nbsp;&nbsp;|&nbsp;&nbsp;
-            <a href='/pricing/'>Pricing</a>
+            <a href='/premium/'>Premium</a>
             &nbsp;&nbsp;|&nbsp;&nbsp;
             <a href='/contacts/'>Contacts</a>
           </div>
@@ -68,9 +70,9 @@ const Footer = (props: any) => {
             </div>
           </div>
           <div className='modal-content'>
-            {languages.map((language: any) => (
-              <Country language={language.name} languageSlug={language.slug} />
-            ))}
+            {/* {languages.map((language: any) => ( */}
+            {/* // <Country language={language.name} languageSlug={language.slug} /> */}
+            {/* // ))} */}
           </div>
         </div>
       )}

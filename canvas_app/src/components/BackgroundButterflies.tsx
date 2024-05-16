@@ -10,6 +10,14 @@ const BackgroundButterflies = (props: any) => {
         zIndex: 0,
       }}
     >
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          color: '#fff',
+        }}
+      ></div>
       {Array.from(Array(props.numberOfButterflies)).map(() => (
         <div className={props.styleClassName}>
           <Butterfly fileName={props.fileName} />
