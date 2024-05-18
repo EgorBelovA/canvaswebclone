@@ -4,8 +4,11 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 30px;
-  height: 250px;
+  height: auto;
+  padding: 15px;
+  overflow: hidden;
 }
 
 .pricing-faq-container {
@@ -18,10 +21,12 @@
   align-items: center;
   justify-content: center;
   padding: 10px;
+  overflow: hidden;
   // gap: 30px;
 }
 
 #container {
+  overflow: hidden;
   // position: absolute;
   margin: auto;
   width: 100%;

@@ -174,26 +174,52 @@ class GetWebhookView(APIView):
         return Response({'message': 'Webhook received and processed successfully'}, status=200)
 
 
+# class CreatePaymentView(APIView):
+    # def post(self, request):
+    #     amount = request.data.get('amount')
+    #     description = request.data.get('description')
+
+    #     payment = Payment.create({
+    #         "amount": {
+    #             "value": "2.00",
+    #             "currency": "RUB"
+    #         },
+    #         "confirmation": {
+    #             "type": "redirect",
+    #             "return_url": "https://www.canvas-professional.com/dashboard/"
+    #         },
+    #         "capture": True,
+    #         "description": "Payment for subscription",
+    #     }, uuid.uuid4())
+
+
+    #     return Response({'payment_form_url': payment})
+
+
+import hmac 
+import json 
+import hashlib 
+import requests
+
 class CreatePaymentView(APIView):
     def post(self, request):
-        amount = request.data.get('amount')
-        description = request.data.get('description')
+        def sortDict(data: dict):
+            sorted_tuple = sorted(data.items(), key=lambda x: x[0]) 
+            return dict(sorted_tuple)
 
-        payment = Payment.create({
-            "amount": {
-                "value": "2.00",
-                "currency": "RUB"
-            },
-            "confirmation": {
-                "type": "redirect",
-                "return_url": "https://www.canvas-professional.com/dashboard/"
-            },
-            "capture": True,
-            "description": "Payment for subscription",
-        }, uuid.uuid4())
+        secretKey = os.environ['LAVAKASSA_SECRET_KEY']
 
+        # data = sortDict(request.data)
+        data = {
+            "account": "R11121755",
+            "amount": 2,
+            "order_id": 1,
+        }
+        jsonStr = json.dumps(data).encode()
 
-        return Response({'payment_form_url': payment})
+        sign = hmac.new(bytes(secretKey, 'UTF-8'), jsonStr, hashlib.sha256).hexdigest()
 
+        response = requests.post('https://api.lava.ru/business/', json=data, headers={'Signature': sign, "Accept": "application/json", "Content-Type": "application/json"})
 
+        return Response(response.json())
 

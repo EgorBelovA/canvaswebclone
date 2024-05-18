@@ -4,16 +4,15 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 16px;
   background-color: #b1c3d6;
-  max-width: 200px;
-  max-height: 200px;
+  width: 250px;
+  height: 250px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
   img {
     max-width: 100%;
-    max-height: 200px;
+    max-height: 250px;
     margin-right: 8px;
     object-fit: cover;
   }
@@ -29,8 +28,8 @@
 }
 
 .image-container {
-  width: 200px;
-  height: 200px;
+  width: 250px;
+  height: 250px;
   overflow: hidden;
 }
 
@@ -43,10 +42,10 @@
 .cards-container {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
 }
 
-.logout-button,
 .create-button {
   border-radius: 15px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
@@ -62,17 +61,49 @@
   color: #fff !important;
 }
 
+@mixin shadow {
+  -webkit-box-shadow: 10px 10px 50px 0px rgba(0, 0, 0, 1);
+  -moz-box-shadow: 10px 10px 50px 0px rgba(0, 0, 0, 1);
+  box-shadow: 10px 10px 50px 0px rgba(0, 0, 0, 1);
+}
+
+@mixin rounded-border {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1d1d1d;
+  border-radius: 50%;
+  user-select: none;
+  cursor: pointer;
+}
+
+.dashboard-container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  width: 100%;
+  overflow: hidden;
+  height: 70px;
+  padding: 15px;
+}
+
 .dashboard-header-user-avatar {
-  height: 40px;
-  width: 40px;
+  @include rounded-border;
   overflow: hidden;
   border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  &:hover {
+    // padding: 3px;
+  }
 }
 
 .dashboard-header-user-img {
   object-fit: cover;
   height: 40px;
   width: 40px;
+  border-radius: 50%;
 }
 
 .modal-canvas-form {
@@ -95,5 +126,107 @@
     position: absolute;
     top: 10px;
     right: 10px;
+  }
+}
+
+.modal-form-profile {
+  float: left;
+  position: absolute;
+  width: 200px;
+  height: auto;
+  background-color: #2b2b2b;
+  top: 65px;
+  right: 15px;
+  padding: 3px;
+  cursor: default;
+  border-radius: 7px;
+  @include shadow;
+}
+
+.modal-form-notifications {
+  font-family: 'Breath_Demo';
+  float: left;
+  position: absolute;
+  width: 200px;
+  max-height: 200px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  background-color: #2b2b2b;
+  top: 65px;
+  right: 15px;
+  padding: 3px;
+  cursor: default;
+  border-radius: 7px;
+  @include shadow;
+
+  .notification-item {
+    list-style: none;
+    color: #d3d3d3;
+    word-wrap: break-word;
+  }
+}
+
+.dashboard-header-notifications-logo {
+  object-fit: cover;
+  height: 25px;
+  width: 25px;
+  pointer-events: none;
+  filter: invert(0);
+}
+
+.dashboard-header-right {
+  gap: 10px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
+.dashboard-header-notifications {
+  @include rounded-border;
+  width: 45px;
+  height: 45px;
+}
+
+.mouse-over-profile {
+  font-family: 'Breath_Demo';
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  background-color: #2b2b2b;
+  padding: 12px;
+  width: auto;
+  height: 30px;
+  color: #fff;
+  margin-top: 90px;
+  z-index: 10;
+  @include shadow;
+}
+
+.profile-button {
+  height: 40px;
+  width: 100%;
+  overflow: hidden;
+  color: #d3d3d3;
+  list-style: none;
+  font-family: 'Breath_Demo';
+
+  &:last-child {
+    border-top: #828282 0.1px solid;
+  }
+
+  a {
+    border-radius: 2px;
+    padding: 10px;
+    display: block;
+    color: #d3d3d3;
+    width: 100%;
+    text-decoration: none;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
   }
 }

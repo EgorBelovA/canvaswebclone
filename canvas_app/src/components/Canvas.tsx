@@ -465,14 +465,6 @@ const Canvas = () => {
     });
   }, []);
 
-  const [notifications, setNotifications] = useState<any[]>([]);
-
-  useLayoutEffect(() => {
-    client.get(`/api/notifications/`).then((e) => {
-      setNotifications(e.data);
-    });
-  }, []);
-
   function sortDefaultFontsByFamily(
     fonts: { family: string }[]
   ): { family: string }[] {
@@ -664,7 +656,6 @@ const Canvas = () => {
   const pageURL = `/canvas/${slug}`;
 
   const socketRef = useRef<WebSocket | null>(null);
-  const socketUserRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     let cursor = document.querySelector('.circular-cursor');
@@ -729,9 +720,10 @@ const Canvas = () => {
   const handleAccessRequest = () => {
     socketRequestRef!.current!.send(
       JSON.stringify({
-        type: 'request',
+        type: 'requestAccess',
         recipientID: canvasRequestUserID,
         senderID: userData.id,
+        canvasSlug: window.location.pathname.split('/')[2],
       })
     );
   };
@@ -971,35 +963,6 @@ const Canvas = () => {
     };
   }, [panOffset]);
 
-  useLayoutEffect(() => {
-    const websocket_url = `${wsProtocol}://${location.host}/user/${userData.id}/`;
-    socketUserRef.current = new WebSocket(websocket_url);
-
-    const handleMessage = (e: any) => {
-      const data = JSON.parse(e.data);
-      console.log(data);
-      notifyMe(data);
-    };
-
-    socketUserRef!.current!.onclose = (e: any) => {
-      console.log('close', e);
-    };
-
-    socketUserRef.current!.onerror = (e: any) => {
-      console.log('error', e);
-    };
-
-    socketUserRef.current!.addEventListener('message', handleMessage, false);
-
-    return () => {
-      socketUserRef.current!.removeEventListener(
-        'message',
-        handleMessage,
-        false
-      );
-    };
-  }, [userData, canvasData]);
-
   useEffect(() => {
     const websocket_url = `${wsProtocol}://${location.host}/canvas/${slug}/`;
     socketRef.current = new WebSocket(websocket_url);
@@ -1177,13 +1140,12 @@ const Canvas = () => {
   const [onlineMembers, setOnlineMembers] = useState<any>([]);
 
   useLayoutEffect(() => {
-    //set online members list from canvasData permitted users
     if (!canvasData.permitted_users) return;
 
     for (let i = 0; i < canvasData.permitted_users.length; i++) {
       if (
-        canvasData.permitted_users[i].email !== userData.email &&
-        canvasData.permitted_users[i].profile.online
+        canvasData.permitted_users[i].profile.online ||
+        canvasData.permitted_users[i].id == userData.id
       ) {
         try {
           if (
@@ -1204,7 +1166,7 @@ const Canvas = () => {
         }
       }
     }
-  }, [canvasData]);
+  }, [canvasData, onlineMembers, userData]);
 
   const [reactions, setReactions] = useState<any>([]);
 
@@ -1788,6 +1750,8 @@ const Canvas = () => {
     );
   };
 
+  const [modalCanvasSettings, setModalCanvasSettings] = useState(false);
+
   const handleBlur = (event: any) => {
     const { id, x1, y1, type } = selectedElement;
     setAction('none');
@@ -1914,6 +1878,8 @@ const Canvas = () => {
     fetchData();
   }, [canvasData]);
 
+  const modalCanvasSettingsRef = useRef<HTMLDivElement>(null);
+
   const sendReaction = (reaction: any) => {
     const reactionSrc = reaction.target.getElementsByTagName('object')[0].data;
     socketRef!.current!.send(
@@ -1969,26 +1935,6 @@ const Canvas = () => {
     `${staticBasicReactionsUrl}clown.svg`,
   ];
 
-  const handleAccessCanvas = (notification: any) => {
-    client
-      .patch(`/api/canvas/update/${slug}/`, {
-        permitted_user: notification.sender.id,
-      })
-      .then(
-        (response) => {
-          console.log(response);
-        },
-        (error) => {
-          console.log(error);
-        }
-      );
-    client.delete(`/api/notifications/${notification.id}/`).then(() => {
-      setNotifications((prevNotifications: any) =>
-        prevNotifications.filter((n: any) => n.id !== notification.id)
-      );
-    });
-  };
-
   const handleDemoModeChange = (e: any) => {
     setDemoMode(e.target.checked);
   };
@@ -2007,167 +1953,196 @@ const Canvas = () => {
     setBackGroundColor(e.target.value);
   };
 
-  const notifyMe = (e: any) => {
-    setNotifications((prevNotifications: any) => [...prevNotifications, e]);
-    Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        const notification = new Notification('Request access to canvas', {
-          body: `${e?.sender.email}`,
-          icon: '/static/icons/logo_wings.svg',
-        });
-        notification.addEventListener('show', () => {
-          setTimeout(() => {
-            notification.close();
-          }, 6000);
-        });
+  const handleSettingsIconClick = (e: any) => {
+    const backgroundDark = document.querySelector(
+      '.background-dark'
+    ) as HTMLInputElement;
+    backgroundDark.classList.add('active');
+
+    const handleClickOutsideSettings = (event: any) => {
+      if (
+        modalCanvasSettingsRef.current &&
+        !modalCanvasSettingsRef.current.contains(event.target) &&
+        event.target !== e.target
+      ) {
+        setModalCanvasSettings(false);
+        backgroundDark.classList.remove('active');
+        window.removeEventListener('click', handleClickOutsideSettings);
       }
-    });
+    };
+
+    window.addEventListener('click', handleClickOutsideSettings);
+    setModalCanvasSettings(true);
   };
 
   return (
-    <div className='canvas-container' style={{ overflow: 'hidden' }}>
+    <div className='canvas-container'>
       <title>{canvasData?.title} - Canvas</title>
       <meta
         name='viewport'
         content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height'
       />
-      <Notifications />
-      <div
-        style={{
-          backgroundColor: '#fff',
-          position: 'absolute',
-          zIndex: 999,
-          top: 50,
-          right: 0,
-          width: '120px',
-          height: '40px',
-        }}
-      >
-        {onlineMembers.map((member: any) => (
-          <img
-            src={member.avatar}
-            className='online-member'
-            style={{
-              borderRadius: '50%',
-              width: '40px',
-              height: '40px',
-              objectFit: 'cover',
-            }}
-          />
-        ))}
-      </div>
+
       <div className='circular-cursor'></div>
-      <div
-        style={{
-          position: 'fixed',
-          zIndex: 2,
-        }}
-      >
-        <div className='sidebar-tool'>
-          <div>
-            <input
-              type='radio'
-              id='selection'
-              checked={tool === 'selection'}
-              onChange={() => handleToolChange('selection')}
+
+      <div className='sidebar-tools-container'>
+        <div
+          id='selection'
+          className='tool-item'
+          onClick={() => handleToolChange('selection')}
+        >
+          <object
+            style={{ pointerEvents: 'none' }}
+            type='image/svg+xml'
+            data={`/static/icons/cursor.svg`}
+            width='24px'
+            id='object'
+          />
+        </div>
+        <div className='shape-selection tool-item'>
+          <div
+            className='button-sidebar'
+            onClick={() => setIsShapeBox(!isShapeBox)}
+          >
+            <object
+              style={{ pointerEvents: 'none' }}
+              type='image/svg+xml'
+              data={`/static/icons/shapes.svg`}
+              width='24px'
+              id='object'
             />
-            <label htmlFor='selection'>Sele1ction</label>
-          </div>
-          <div className='shape-selection'>
-            <div
-              className='button-sidebar'
-              onClick={() => setIsShapeBox(!isShapeBox)}
-            >
-              <object
-                style={{ pointerEvents: 'none' }}
-                type='image/svg+xml'
-                data={`/static/icons/shapes.svg`}
-                width='24px'
-                id='object'
-              />
-            </div>
-            {isShapeBox && (
-              <div>
-                <input
-                  type='radio'
-                  id='ellipse'
-                  checked={tool === 'ellipse'}
-                  onChange={() => handleToolChange('ellipse')}
-                />
-                <label htmlFor='ellipse'>Ellipse</label>
-                <input
-                  type='radio'
-                  id='triangle'
-                  checked={tool === 'triangle'}
-                  onChange={() => handleToolChange('triangle')}
-                />
-                <label htmlFor='triangle'>Triangle</label>
-                <input
-                  type='radio'
-                  id='line'
-                  checked={tool === 'line'}
-                  onChange={() => handleToolChange('line')}
-                />
-                <label htmlFor='line'>Line</label>
-                <input
-                  type='radio'
-                  id='rectangle'
-                  checked={tool === 'rectangle'}
-                  onChange={() => handleToolChange('rectangle')}
-                />
-                <label htmlFor='rectangle'>Rectangle</label>
-                <input
-                  type='radio'
-                  id='star'
-                  checked={tool === 'star'}
-                  onChange={() => handleToolChange('star')}
-                />
-                <label htmlFor='star'>Star</label>
-              </div>
-            )}
-            <div>
-              <input
-                type='radio'
-                id='pencil'
-                checked={tool === 'pencil'}
-                onChange={() => handleToolChange('pencil')}
-              />
-              <label htmlFor='pencil'>Pencil</label>
-            </div>
-            <div>
-              <input
-                type='radio'
-                id='text'
-                checked={tool === 'text'}
-                onChange={() => handleToolChange('text')}
-              />
-              <label htmlFor='text'>Text</label>
-            </div>
-            <div>
-              <input
-                type='radio'
-                id='eraser'
-                checked={tool === 'eraser'}
-                onChange={() => handleToolChange('eraser')}
-              />
-              <label htmlFor='eraser'>Eraser</label>
-            </div>
           </div>
         </div>
-
-        <select value={gridType} onChange={(e) => setGridType(e.target.value)}>
-          <option value='lined'>Lined</option>
-          <option value='dotted'>Dotted</option>
-          <option value='none'>None</option>
-        </select>
-        <input
-          type='file'
-          accept='.woff, .woff2, .ttf, .otf'
-          id='fontFamily'
-          onChange={uploadFontFamily}
-        />
-        <label htmlFor='fontFamily'>Upload Font</label>
+        <div
+          className='tool-item'
+          onClick={() => handleToolChange('pencil')}
+          id='pencil'
+        >
+          <object
+            style={{ pointerEvents: 'none', position: 'fixed' }}
+            type='image/svg+xml'
+            data={`/static/icons/pen.svg`}
+            width='24px'
+            id='pencil'
+          />
+        </div>
+        <div
+          className='tool-item'
+          onClick={() => handleToolChange('text')}
+          id='text'
+        >
+          <object
+            style={{ pointerEvents: 'none', position: 'fixed' }}
+            type='image/svg+xml'
+            data={`/static/icons/text.svg`}
+            width='24px'
+            id='text'
+          />
+        </div>
+        <div
+          className='tool-item'
+          onClick={() => handleToolChange('special')}
+          id='special'
+        >
+          <object
+            style={{ pointerEvents: 'none', position: 'fixed' }}
+            type='image/svg+xml'
+            data={`/static/icons/special.svg`}
+            width='24px'
+            id='text'
+          />
+        </div>
+        {isShapeBox && (
+          <div className='additional-box-container'>
+            <div
+              className='tool-item'
+              onClick={() => handleToolChange('ellipse')}
+              id='ellipse'
+            >
+              <object
+                style={{ pointerEvents: 'none', position: 'fixed' }}
+                type='image/svg+xml'
+                data={`/static/icons/circle.svg`}
+                width='20px'
+                id='rectangle'
+              />
+            </div>
+            <div
+              className='tool-item'
+              onClick={() => handleToolChange('triangle')}
+              id='triangle'
+            >
+              <object
+                style={{ pointerEvents: 'none', position: 'fixed' }}
+                type='image/svg+xml'
+                data={`/static/icons/triangle.svg`}
+                width='20px'
+                id='rectangle'
+              />
+            </div>
+            <div
+              className='tool-item'
+              onClick={() => handleToolChange('line')}
+              id='line'
+            >
+              <object
+                style={{ pointerEvents: 'none', position: 'fixed' }}
+                type='image/svg+xml'
+                data={`/static/icons/line.svg`}
+                width='24px'
+                id='rectangle'
+              />
+            </div>
+            <div
+              className='tool-item'
+              onClick={() => handleToolChange('rectangle')}
+              id='rectangle'
+            >
+              <object
+                style={{ pointerEvents: 'none', position: 'fixed' }}
+                type='image/svg+xml'
+                data={`/static/icons/square.svg`}
+                width='20px'
+                id='rectangle'
+              />
+            </div>
+            <div
+              className='tool-item'
+              onClick={() => handleToolChange('star')}
+              id='star'
+            >
+              <object
+                style={{ pointerEvents: 'none', position: 'fixed' }}
+                type='image/svg+xml'
+                data={`/static/icons/star.svg`}
+                width='24px'
+                id='rectangle'
+              />
+            </div>
+          </div>
+        )}
+        {/* <div className='tool-item'>
+          <input
+            type='radio'
+            id='eraser'
+            checked={tool === 'eraser'}
+            onChange={() => handleToolChange('eraser')}
+          />
+        </div> */}
       </div>
+
+      <select value={gridType} onChange={(e) => setGridType(e.target.value)}>
+        <option value='lined'>Lined</option>
+        <option value='dotted'>Dotted</option>
+        <option value='none'>None</option>
+      </select>
+      <input
+        type='file'
+        accept='.woff, .woff2, .ttf, .otf'
+        id='fontFamily'
+        onChange={uploadFontFamily}
+      />
+      <label htmlFor='fontFamily'>Upload Font</label>
       <div style={{ position: 'fixed', zIndex: 2, bottom: 0, padding: 10 }}>
         <button onClick={onZoomMinus}>-</button>
         <span
@@ -2259,6 +2234,13 @@ const Canvas = () => {
           onBlur={handleFontColorChange}
           type='color'
         />
+        <div>
+          <input
+            type='color'
+            // value={cookies.backGroundColor}
+            onBlur={handleBackgroundColorChange}
+          />
+        </div>
       </div>
       <div className='slider'>
         <input
@@ -2282,23 +2264,36 @@ const Canvas = () => {
           // value={fontSize}
         />
       </div>
-      <div>
-        <input
-          style={{ position: 'absolute', top: '60px', zIndex: 100 }}
-          type='color'
-          // value={cookies.backGroundColor}
-          onBlur={handleBackgroundColorChange}
-        />
-      </div>
-      <div style={{ position: 'absolute', top: '90px', zIndex: 100 }}>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '110px',
+          left: '10px',
+          zIndex: 100,
+        }}
+      >
         <input type='checkbox' onChange={handleDemoModeChange} />
         Demo Mode
       </div>
-      <div style={{ position: 'absolute', top: '120px', zIndex: 100 }}>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '140px',
+          left: '10px',
+          zIndex: 100,
+        }}
+      >
         <input type='checkbox' onChange={handleAutoShapeChange} />
         AutoShape
       </div>
-      <div style={{ position: 'absolute', top: '150px', zIndex: 100 }}>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '170px',
+          left: '10px',
+          zIndex: 100,
+        }}
+      >
         <input type='checkbox' onChange={handleVoiceRecordChange} />
         Voice Record
       </div>
@@ -2328,30 +2323,9 @@ const Canvas = () => {
         </div>
       ))}
 
-      <div
-        style={{
-          position: 'absolute',
-          backgroundColor: '#fff',
-          width: 160,
-          height: 40,
-          zIndex: 100,
-          bottom: 0,
-          right: 0,
-          display: 'flex',
-        }}
-        className='reaction-choose-container'
-      >
+      <div className='reaction-choose-container'>
         {basicReactions.map((reaction: any) => (
-          <div
-            style={{
-              width: 40,
-              height: '100%',
-              zIndex: 100,
-              cursor: 'pointer',
-            }}
-            key={reaction}
-            onClick={sendReaction}
-          >
+          <div className='reaction-item' key={reaction} onClick={sendReaction}>
             <object
               style={{ pointerEvents: 'none', width: '100%', height: '100%' }}
               type='image/svg+xml'
@@ -2362,39 +2336,29 @@ const Canvas = () => {
         ))}
       </div>
       <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-        }}
+        className='reactions-jump-container'
+        onClick={(e) => e.stopPropagation()}
       >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className='reactions-jump-container'
-        >
-          {reactions.map((reaction: any, index: any) => (
-            <div
-              key={index}
-              className={
-                reaction.src ===
-                `http://127.0.0.1:8001/static/icons/reactions/clown.svg`
-                  ? 'clown'
-                  : 'reaction-animation'
-              }
-            >
-              <object
-                style={{
-                  pointerEvents: 'none',
-                }}
-                type='image/svg+xml'
-                data={reaction.src}
-                className='reaction'
-              />
-            </div>
-          ))}
-        </div>
+        {reactions.map((reaction: any, index: any) => (
+          <div
+            key={index}
+            className={
+              reaction.src ===
+              `http://127.0.0.1:8001/static/icons/reactions/clown.svg`
+                ? 'clown'
+                : 'reaction-animation'
+            }
+          >
+            <object
+              style={{
+                pointerEvents: 'none',
+              }}
+              type='image/svg+xml'
+              data={reaction.src}
+              className='reaction'
+            />
+          </div>
+        ))}
       </div>
       <div className='list-choice'>
         <div className='list-choice-title'>{fontFamily}</div>
@@ -2409,24 +2373,13 @@ const Canvas = () => {
                 });
               }}
             >
-              <input type='radio' name='month' key={index} />
+              <input type='radio' name='font' key={index} />
               <span>{font.family}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className='notifications-container'>
-        {notifications.map((notification: any) => (
-          <div
-            className='notification-container'
-            onClick={() => handleAccessCanvas(notification)}
-          >
-            <div>{notification.type}</div>
-            <div>{notification.sender.email}</div>
-          </div>
-        ))}
-      </div>
       <div
         className='loading_container'
         ref={loadingRef}
@@ -2434,11 +2387,12 @@ const Canvas = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          height: '100vh',
-          width: '100vw',
+          height: `${innnerSize.height}px`,
+          width: `${innnerSize.width}px`,
           backgroundColor: 'white',
           position: 'absolute',
           zIndex: 1000,
+          top: 0,
         }}
       >
         <object
@@ -2458,6 +2412,51 @@ const Canvas = () => {
         </div>
       )}
       {isNotFound && <div className='modal-window-not-found'>NOT FOUND</div>}
+      <div className='canvas-header-right-container'>
+        <div className='canvas-header-right-notifications'>
+          <Notifications userData={userData} />
+        </div>
+        <div
+          className={`online-members-container  ${
+            onlineMembers.length > 1 ? 'active' : ''
+          }`}
+        >
+          {onlineMembers.map((member: any) => (
+            <img src={member.avatar} className='online-member' />
+          ))}
+        </div>
+
+        {canvasData.admins &&
+          userData.id &&
+          canvasData!.admins!.includes(userData!.id) && (
+            <div>
+              <div
+                onClick={(e) => {
+                  handleSettingsIconClick(e);
+                }}
+                className='settings-icon-container'
+              >
+                <object
+                  className='settings-icon'
+                  data='/static/icons/settings.svg'
+                  type='image/svg+xml'
+                ></object>
+              </div>
+            </div>
+          )}
+      </div>
+      {modalCanvasSettings && (
+        <div ref={modalCanvasSettingsRef} className='modal-window-settings'>
+          {canvasData.permitted_users.map((user: any) => (
+            <div>
+              <img src={user.avatar} className='user-avatar' />
+              <span>{user.email}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className='background-dark'></div>
     </div>
   );
 };

@@ -23,8 +23,7 @@ urlpatterns = [
     path('email/', include(email_urls), name='email-verification'),
 
 
-    re_path(r'^canvas', index_view, name='index'),
-    # path('canvas/', index_view, name='canvas'),
+    re_path(r'^canvas/', index_view, name='index'),
     path('', index_view, name='index'),
     path('email-verification/', index_view, name='email-verification-sent'),
     path('signup/', index_view, name='signup'),

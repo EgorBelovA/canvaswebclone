@@ -254,7 +254,7 @@ const UserProfile = () => {
   return (
     <div>
       <form className='user-profile'>
-        <DashboardHeader avatar={userData.avatar} />
+        <DashboardHeader userData={userData} />
         <div>{userData.email}</div>
         <input value={userData.first_name} />
         <div className='user-avatar'>

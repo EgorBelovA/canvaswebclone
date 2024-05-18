@@ -29,7 +29,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className='index-container'>
-      <title>Canvas - Space for creativity</title>
+      <title>Canvas - Space for your creativity</title>
 
       <video
         id='background-image'
@@ -39,6 +39,7 @@ const HomePage: React.FC = () => {
         disablePictureInPicture={true}
         webkit-playsinline={true}
         playsInline={true}
+        controls={false}
       >
         <source src='/static/wings.mp4' type='video/mp4' />
       </video>

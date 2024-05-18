@@ -24,6 +24,7 @@ class CanvasElementSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     sender = UserSerializer()
+    canvas = CanvasSerializer()
     class Meta:
         model = Notification
         fields = ('__all__')

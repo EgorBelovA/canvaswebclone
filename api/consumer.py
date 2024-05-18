@@ -70,11 +70,18 @@ class NotificationConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def create_notification(self, data):
+        print(data)
+        canvas = None
+        type = data["type"]
+        canvas = Canvas.objects.get(slug=(data["canvasSlug"]))
+
         notification = Notification.objects.create(
-            type="requestAccess",
+            type=type,
             sender=CustomUser.objects.get(id=int(data["senderID"])),
             recipient=CustomUser.objects.get(id=int(data["recipientID"])),
+            canvas=canvas
         )
+        
         notification.save()
         notification_serializer = NotificationSerializer(notification)
         notification = json.dumps(notification_serializer.data)

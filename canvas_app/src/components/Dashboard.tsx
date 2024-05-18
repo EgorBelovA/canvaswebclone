@@ -22,31 +22,11 @@ const Dashboard = () => {
       .get(`/api/user/`)
       .then((e) => {
         setUserData(e.data.user);
-        console.log(e.data.user);
-        client
-          .post('/api/token/', {
-            email: e.data.user.email,
-          })
-          .then((e) => {
-            localStorage.clear();
-            localStorage.setItem('access_token', e.data.access);
-            localStorage.setItem('refresh_token', e.data.refresh);
-            // axios.defaults.headers.common[
-            //   'Authorization'
-            // ] = `Bearer ${data['access']}`;
-          });
       })
       .catch((_) => {
         navigate('/login/');
       });
   }, []);
-
-  function submitLogout() {
-    client.post('/api/logout/').then(function () {
-      localStorage.clear();
-      navigate('/login/');
-    });
-  }
 
   const [canvases, setCanvases] = useState([]);
 
@@ -77,15 +57,8 @@ const Dashboard = () => {
 
   return (
     <div>
-      <DashboardHeader avatar={userData.avatar} />
+      <DashboardHeader userData={userData} />
       <div>
-        <h1 className='title'>{userData.first_name}</h1>
-        <h2 className='title'>{userData.email}</h2>
-      </div>
-      <div>
-        <div className='logout-button' onSubmit={submitLogout}>
-          Log out
-        </div>
         <button
           onClick={handleCanvasModal}
           type='button'

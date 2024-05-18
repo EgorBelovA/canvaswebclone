@@ -48,7 +48,8 @@ class CanvasElement(models.Model):
 class Notification(models.Model):
     sender = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE, related_name='send_from')
     recipient = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE, related_name='user_notifications', db_index=True)
-    type = models.CharField(max_length=50, choices=(('requestAccess', 'requestAccess'),))
+    type = models.CharField(max_length=50, choices=(('requestAccess', 'requestAccess'), ("requestAccept", "requestAccept"), ("requestDecline", "requestDecline")))
+    canvas = models.ForeignKey('Canvas', on_delete=models.CASCADE, related_name='canvas_notifications', db_index=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -68,7 +69,6 @@ class SpotifyToken(models.Model):
     access_token = models.CharField(max_length=150)
     expires_in = models.DateTimeField()
     token_type = models.CharField(max_length=50)
-
 
 
 class VoiceRecord(models.Model):
