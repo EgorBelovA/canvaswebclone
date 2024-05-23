@@ -13,6 +13,7 @@ const client = axios.create({
 });
 
 const UserProfile = () => {
+  const [username, setUsername] = useState('');
   const [userData, setUserData] = useState<any>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -25,6 +26,7 @@ const UserProfile = () => {
       .get(`/api/user/`)
       .then((e) => {
         setUserData(e.data.user);
+        setUsername(e.data.user.first_name);
         console.log(e.data.user);
       })
       .catch((_) => {
@@ -255,8 +257,8 @@ const UserProfile = () => {
     <div>
       <form className='user-profile'>
         <DashboardHeader userData={userData} />
-        <div>{userData.email}</div>
-        <input value={userData.first_name} />
+        <input readOnly value={userData.email} />
+        <input value={username} onChange={(e) => setUsername(e.target.value)} />
         <div className='user-avatar'>
           <input
             style={{ display: 'none' }}

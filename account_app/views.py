@@ -27,7 +27,6 @@ class UserRegister(APIView):
     permission_classes = [permissions.AllowAny,]
     def post(self, request):
         clean_data = request.data
-        print(clean_data)
         serializer = UserRegistrationSerializer(data=clean_data)
         if serializer.is_valid(raise_exception=True):
             user = serializer.create(clean_data)
@@ -102,6 +101,16 @@ class UserProfileApiUpdate(UpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
 
+class UserEmailCheck(APIView):
+    permission_classes = (permissions.AllowAny,)
+    def get(self, request):
+        email = request.GET.get('email', None)
+        if CustomUser.objects.filter(email=email).exists():
+            return Response({'exists': True}, status=status.HTTP_200_OK)
+        else:
+            return Response({'exists': False}, status=status.HTTP_200_OK)
+        
+
 
 def google_login(request):
     return HttpResponseRedirect(constants.GOOGLE_LOGIN_REDIRECT_URI)
@@ -125,8 +134,8 @@ def google_callback(request):
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Plan, Subscription
-from .serializers import PlanSerializer, SubscriptionSerializer
+from .models import *
+from .serializers import *
 from yookassa import Configuration
 from django.shortcuts import get_object_or_404
 
@@ -135,19 +144,8 @@ Configuration.secret_key = "your_secret_key"
 
 
 
-class PlanViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Plan.objects.all()
-    serializer_class = PlanSerializer
 
 
-
-Configuration.account_id = os.getenv('YOOKASSA_ACCOUNT_ID')
-Configuration.secret_key = os.getenv('YOOKASSA_SECRET_KEY')
-Configuration.configure_user_agent(
-    framework=Version('Django', '5.0.3'),
-    cms=Version('Wagtail', '2.6.2'),
-    module=Version('Y.CMS', '0.0.1')
-)
 
 import json
 from django.http import HttpResponse
@@ -156,17 +154,18 @@ from yookassa.domain.notification import WebhookNotification
 
 class GetWebhookView(APIView):
     def post(self, request):
-        event_json = request.data  # Assuming YooKassa sends data in the request body
-        notification_object = WebhookNotification(event_json)
-        event = notification_object.object
+        # event_json = request.data  # Assuming YooKassa sends data in the request body
+        # notification_object = WebhookNotification(event_json)
+        # event = notification_object.object
+        print("WEBHOOK", request.data)
 
         # Process the event and create a Subscription
-        subscription = Subscription.objects.create(
-            user=event.user,
-            plan=event.plan,
-            yookassa_subscription_id=event.id,
-            status=event.status
-        )
+        # subscription = Subscription.objects.create(
+        #     user=event.user,
+        #     plan=event.plan,
+        #     yookassa_subscription_id=event.id,
+        #     status=event.status
+        # )
 
         # You can add more processing logic here if needed
 
@@ -174,26 +173,28 @@ class GetWebhookView(APIView):
         return Response({'message': 'Webhook received and processed successfully'}, status=200)
 
 
-# class CreatePaymentView(APIView):
-    # def post(self, request):
-    #     amount = request.data.get('amount')
-    #     description = request.data.get('description')
+import yoomoney
+api = yoomoney.Client(os.getenv('YOOMONEY_CLIENT_ID'))
 
-    #     payment = Payment.create({
-    #         "amount": {
-    #             "value": "2.00",
-    #             "currency": "RUB"
-    #         },
-    #         "confirmation": {
-    #             "type": "redirect",
-    #             "return_url": "https://www.canvas-professional.com/dashboard/"
-    #         },
-    #         "capture": True,
-    #         "description": "Payment for subscription",
-    #     }, uuid.uuid4())
+import requests
+from urllib.parse import urlencode
+class CreatePaymentView(APIView):
+    def get(self, request):
+        client_id = os.getenv('YOOMONEY_CLIENT_ID')
 
+        profile = UserProfile.objects.get(user=request.user)
+        payment = Payment.objects.create(user=profile)
 
-    #     return Response({'payment_form_url': payment})
+        quickpay = yoomoney.Quickpay(
+            receiver = "410019020882354",
+            quickpay_form="shop",
+            targets="Sponsor this project",
+            paymentType="SB",
+            sum=2,
+            label=payment.id,
+        )
+
+        return Response({'payment_form_url': quickpay.redirected_url})
 
 
 import hmac 
@@ -201,25 +202,25 @@ import json
 import hashlib 
 import requests
 
-class CreatePaymentView(APIView):
-    def post(self, request):
-        def sortDict(data: dict):
-            sorted_tuple = sorted(data.items(), key=lambda x: x[0]) 
-            return dict(sorted_tuple)
+# class CreatePaymentView(APIView):
+#     def post(self, request):
+#         def sortDict(data: dict):
+#             sorted_tuple = sorted(data.items(), key=lambda x: x[0]) 
+#             return dict(sorted_tuple)
 
-        secretKey = os.environ['LAVAKASSA_SECRET_KEY']
+#         secretKey = os.environ['LAVAKASSA_SECRET_KEY']
 
-        # data = sortDict(request.data)
-        data = {
-            "account": "R11121755",
-            "amount": 2,
-            "order_id": 1,
-        }
-        jsonStr = json.dumps(data).encode()
+#         # data = sortDict(request.data)
+#         data = {
+#             "account": "R11121755",
+#             "amount": 2,
+#             "order_id": 1,
+#         }
+#         jsonStr = json.dumps(data).encode()
 
-        sign = hmac.new(bytes(secretKey, 'UTF-8'), jsonStr, hashlib.sha256).hexdigest()
+#         sign = hmac.new(bytes(secretKey, 'UTF-8'), jsonStr, hashlib.sha256).hexdigest()
 
-        response = requests.post('https://api.lava.ru/business/', json=data, headers={'Signature': sign, "Accept": "application/json", "Content-Type": "application/json"})
+#         response = requests.post('https://api.lava.ru/business/', json=data, headers={'Signature': sign, "Accept": "application/json", "Content-Type": "application/json"})
 
-        return Response(response.json())
+#         return Response(response.json())
 

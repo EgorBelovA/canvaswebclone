@@ -22,12 +22,13 @@ urlpatterns = [
     path('login/', UserLogin.as_view(), name='api_login'),
     path('logout/', UserLogout.as_view(), name='api_logout'),
     path('user/', UserView.as_view(), name='user'),
+    path('email/check/', UserEmailCheck.as_view(), name='email_check'),
     path('user/<pk>/', UserApiUpdate.as_view(), name='user_update'),
     path('user-profile/<pk>/', UserProfileApiUpdate.as_view(), name='user_profile_update'),
     path('font/', FontUploadView.as_view(), name='font_upload'),
     path('notifications/', NotificationView.as_view(), name='notifications'),
     path('notifications/<int:pk>/', NotificationView.as_view(), name='notifications_delete'),
-    path('voice-record/', VoiceRecordUploadView.as_view(), name='voice_record'),
+    path('file/', FileUploadView.as_view(), name='file_upload'),
 
     #Payment
     path('create-payment/', CreatePaymentView.as_view()),

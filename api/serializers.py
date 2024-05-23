@@ -30,7 +30,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
-class VoiceSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = VoiceRecord
+        model = File
         fields = ('__all__')

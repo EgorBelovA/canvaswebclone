@@ -11,38 +11,9 @@ const client = axios.create({
 
 const PricingCard = (props: any) => {
   const handlePayment = () => {
-    // client.post('/payments/', {
-    //   amount: {
-    //     value: '2.00',
-    //     currency: 'RUB',
-    //   },
-    //   payment_method_data: {
-    //     type: 'bank_card',
-    //   },
-    //   confirmation: {
-    //     type: 'redirect',
-    //     return_url: 'https://www.example.com/return_url',
-    //   },
-    //   description: 'Заказ №72',
-    // });
-    client
-      .post('/api/create-payment/', {
-        amount: {
-          value: '2.00',
-          currency: 'RUB',
-        },
-        confirmation: {
-          type: 'redirect',
-          return_url: 'https://www.example.com/return_url',
-        },
-        description: 'Заказ №72',
-      })
-      .then((res) => {
-        //redirect to res.data.confirmation.confirmation_url
-        console.log(res);
-        window.location.href =
-          res.data.payment_form_url.confirmation.confirmation_url;
-      });
+    client.get('/api/create-payment/').then((res) => {
+      window.location.href = res.data.payment_form_url;
+    });
   };
 
   return (

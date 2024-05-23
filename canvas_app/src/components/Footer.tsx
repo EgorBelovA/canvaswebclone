@@ -5,8 +5,8 @@ import { useState } from 'react';
 // import Country from './Country';
 import '../scss/components/home.scss';
 
-const Footer = (props: any) => {
-  const [isRegionChange, setIsRegionChange] = useState(false);
+const Footer = () => {
+  const [isRegionChange, _] = useState(false);
   // const [locale, setLocale] = useState('US');
 
   // useEffect(() => {
@@ -31,18 +31,20 @@ const Footer = (props: any) => {
   // const IS_GEOLOCATION_SUPPORTED =
   // !!navigator?.geolocation?.getCurrentPosition && false;
 
-  const regionChange = () => {
-    setIsRegionChange(!isRegionChange);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  // const regionChange = () => {
+  //   setIsRegionChange(!isRegionChange);
+  //   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // };
 
   return (
-    <div>
+    <footer>
       <div className='footer'>
         <div className='footer-copyright'>
-          {/* <div>Copyright © 2024 Canvas. All Rights Reserved.</div> */}
+          <div className='footer-copyright-text'>
+            Copyright © 2024 Canvas. All Rights Reserved.
+          </div>
           {/* <div>{props.language.copyright}</div> */}
-          <div>
+          <div className='footer-links'>
             <a href='/legal/privacy-policy/'>Privacy Policy</a>
             &nbsp;&nbsp;|&nbsp;&nbsp;
             <a href='/legal/terms-and-conditions/'>Terms of Use</a>
@@ -54,14 +56,11 @@ const Footer = (props: any) => {
             <a href='/contacts/'>Contacts</a>
           </div>
         </div>
-        <div onClick={regionChange} className='footer-region'>
-          {props.region}
-        </div>
+        <div className='footer-region'>Russia</div>
       </div>
       {isRegionChange && (
         <div className='modal-region'>
           <div className='modal-title'>
-            {' '}
             <div className='modal-title'>
               <h2>Choose a language</h2>
             </div>
@@ -76,7 +75,7 @@ const Footer = (props: any) => {
           </div>
         </div>
       )}
-    </div>
+    </footer>
   );
 };
 

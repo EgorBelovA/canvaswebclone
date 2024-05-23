@@ -91,7 +91,6 @@ const Dashboard = () => {
           <div className='modal-canvas-form-body'>
             <form>
               <div className='form-group'>
-                <label htmlFor='title'>Title</label>
                 <input
                   ref={titleRef}
                   type='text'
@@ -100,7 +99,7 @@ const Dashboard = () => {
                   placeholder='Enter title'
                 />
               </div>
-              <div className='form-group'>
+              {/* <div className='form-group'>
                 <label htmlFor='image'>Image</label>
                 <input
                   type='file'
@@ -108,10 +107,10 @@ const Dashboard = () => {
                   id='image'
                   placeholder='Enter image'
                 />
-              </div>
+              </div> */}
               <button
                 type='button'
-                className='btn btn-primary'
+                className='modal-canvas-form-submit-button'
                 onClick={handleCanvasCreate}
               >
                 Submit

@@ -57,14 +57,12 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 
 
-class Plan(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    yookassa_plan_id = models.CharField(max_length=255)
+class Payment(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='payments')
+    type = models.CharField(max_length=255, choices=(
+        ('success', 'Success'), ('failed', 'Failed'), ("Pending", "Pending")
+    ), default="Pending")
 
 class Subscription(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
-    yookassa_subscription_id = models.CharField(max_length=255)
-    status = models.CharField(max_length=255)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='subscriptions')
+    created_at = models.DateTimeField(auto_now_add=True)

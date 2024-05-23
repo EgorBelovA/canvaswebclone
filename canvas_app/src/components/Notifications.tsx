@@ -43,12 +43,11 @@ const Notifications = (props: any) => {
       notifyMe(data);
     };
 
-    socketUserRef!.current!.onclose = (e: any) => {
-      console.log('close', e);
-    };
+    socketUserRef!.current!.onclose = () => {};
 
-    socketUserRef.current!.onerror = (e: any) => {
-      console.log('error', e);
+    socketUserRef.current!.onerror = () => {
+      socketUserRef.current!.close();
+      socketUserRef.current = new WebSocket(websocket_url);
     };
 
     socketUserRef.current!.addEventListener('message', handleMessage, false);
@@ -65,7 +64,6 @@ const Notifications = (props: any) => {
   useLayoutEffect(() => {
     client.get(`/api/notifications/`).then((e) => {
       setNotifications(e.data);
-      console.log('NOT', e.data);
     });
   }, []);
 

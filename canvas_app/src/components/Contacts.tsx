@@ -1,5 +1,6 @@
 import Header from './Header';
 import Footer from './Footer';
+import '../scss/components/contacts.scss';
 
 const Contacts = () => {
   return (
@@ -16,14 +17,7 @@ const Contacts = () => {
           </h1>
         </div>
         <div>
-          <div
-            style={{
-              color: '#fff',
-              fontFamily: 'Breath_Demo',
-              position: 'absolute',
-              bottom: '40px',
-            }}
-          >
+          <div className='contact-info-container'>
             TAXPAYER IDENTIFICATION NUMBER (TIN) 580314395001
             <br />
             Belov Egor Andreevich

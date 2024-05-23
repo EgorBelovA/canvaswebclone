@@ -26,7 +26,6 @@ class Canvas(models.Model):
     image = models.ImageField(upload_to='canvas_image/', default=random_default_image, blank=True, null=True)
     elements = models.ManyToManyField('CanvasElement', blank=True, related_name='element_canvas')
     fonts = models.ManyToManyField('Font', blank=True, related_name='font_canvas', db_index=True)
-    voice_records = models.ManyToManyField('VoiceRecord', blank=True, related_name='voice_record_canvas', db_index=True)
 
 
     class Meta:
@@ -37,7 +36,9 @@ class Canvas(models.Model):
     
 
 class CanvasElement(models.Model):
+    user = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE)
     element = models.JSONField()
+    file = models.ManyToManyField('File', blank=True, related_name='file_element', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -71,10 +72,9 @@ class SpotifyToken(models.Model):
     token_type = models.CharField(max_length=50)
 
 
-class VoiceRecord(models.Model):
-    user = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE)
+class File(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    file = models.FileField(upload_to='voice_records/', blank=True, null=True)
+    file = models.FileField(blank=True, null=True)
 
 class Placemark(models.Model):
     user = models.ForeignKey('account_app.CustomUser', on_delete=models.CASCADE)
@@ -90,3 +90,4 @@ class Placemark(models.Model):
 
     def generate_random_color(self):
         return '#{:06x}'.format(random.randint(0, 0xFFFFFF))
+    

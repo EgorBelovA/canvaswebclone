@@ -1,21 +1,25 @@
 import Footer from './Footer';
 import Header from './Header';
-import '../scss/components/_global.scss';
+import '../scss/components/email-verification.scss';
 
 const EmailVerification = () => {
   return (
     <div className='index-container'>
-      <div
-        className='index-main'
-        style={{ color: '#fff', fontFamily: 'Breath_Demo' }}
-      >
+      <div className='index-main'>
         <Header />
-        <h4>Письмо подтверждения отправлено!</h4>
-        <div style={{ fontFamily: 'Breath_Demo' }}>
-          На ваш адрес электронной почты было отправлено письмо с
-          подтверждением. Пожалуйста, проверьте свою электронную почту и нажмите
-          на ссылку подтверждения, чтобы завершить регистрацию. Если письмо не
-          пришло, проверьте папку спам.
+        <div className='email-verification-container'>
+          <h4>The confirmation email has been sent!</h4>
+          <div>
+            <div>
+              A confirmation e-mail has been sent to your e-mail address.
+              confirmation.
+            </div>
+            <div>
+              Please check your e-mail and click on the confirmation link to
+              complete your registration.
+            </div>
+            <div>If email has not arrived, please check your spam folder.</div>
+          </div>
         </div>
         <Footer />
       </div>

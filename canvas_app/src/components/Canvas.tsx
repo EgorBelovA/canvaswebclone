@@ -403,6 +403,7 @@ const usePressedKeys = () => {
 };
 
 const Canvas = () => {
+  const fontInputRef = useRef<HTMLInputElement>(null);
   const [autoShapeMode, setAutoShapeMode] = useState(false);
   const [isShapeBox, setIsShapeBox] = useState<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -631,12 +632,12 @@ const Canvas = () => {
 
   const onStrokeColorUpdate = (e: any) => {
     setStrokeColor(e.target.value);
-    setCookie('strokeColor', e.target.value);
+    setCookie('strokeColor', e.target.value, { path: pageURL });
   };
 
   const onFontColorUpdate = (e: any) => {
     setFontColor(e.target.value);
-    setCookie('fontColor', e.target.value);
+    setCookie('fontColor', e.target.value, { path: pageURL });
   };
 
   const handleToolChange = (tool: any) => {
@@ -686,6 +687,8 @@ const Canvas = () => {
   const socketRequestRef = useRef<WebSocket | null>(null);
   const [canvasRequestUserID, setCanvasRequestUserID] = useState<any>(null);
 
+  const [isAccess, setIsAccess] = useState<boolean>(false);
+
   useLayoutEffect(() => {
     client
       .get(`/api/canvas/${slug}/`)
@@ -715,7 +718,13 @@ const Canvas = () => {
           setCanvasRequestUserID(e.response.data[0][0]);
         }
       });
-  }, []);
+  }, [isAccess]);
+
+  useEffect(() => {
+    setInterval(() => {
+      setIsAccess(true);
+    }, 3000);
+  }, [isAccess]);
 
   const handleAccessRequest = () => {
     socketRequestRef!.current!.send(
@@ -760,7 +769,7 @@ const Canvas = () => {
               const formData = new FormData();
               formData.append('file', audioBlob);
               formData.append('name', 'voice');
-              client.post('/api/voice-record/', formData);
+              client.post('/api/file/', formData);
               console.log(audioSrc);
             };
 
@@ -934,12 +943,28 @@ const Canvas = () => {
       loadingRef!.current!.style.opacity = '1';
       canvasRef!.current!.style.display = 'none';
     } else {
-      //wait 1 secont and then set display none
+      const toolSelection = document.querySelector(
+        '.sidebar-tools-container'
+      ) as HTMLInputElement;
+      const canvasHeader = document.querySelector(
+        '.canvas-header-right-container '
+      ) as HTMLInputElement;
+      const reactionChooseContainer = document.querySelector(
+        '.reaction-choose-container'
+      );
+      toolSelection!.classList.add('loading');
+      canvasHeader!.classList.add('loading');
+      reactionChooseContainer!.classList.add('loading');
+
       setTimeout(() => {
         canvasRef!.current!.style.display = 'unset';
         loadingRef!.current!.style.opacity = '0';
+
         setTimeout(() => {
           loadingRef!.current!.style.display = 'none';
+          toolSelection!.classList.remove('loading');
+          canvasHeader!.classList.remove('loading');
+          reactionChooseContainer!.classList.remove('loading');
         }, 1000);
       }, 1000);
     }
@@ -967,12 +992,12 @@ const Canvas = () => {
     const websocket_url = `${wsProtocol}://${location.host}/canvas/${slug}/`;
     socketRef.current = new WebSocket(websocket_url);
 
-    socketRef!.current!.onclose = (e: any) => {
-      console.log('close', e);
+    socketRef!.current!.onclose = () => {
+      console.log('socket closed');
     };
 
-    socketRef.current!.onerror = (e: any) => {
-      console.log('error', e);
+    socketRef.current!.onerror = () => {
+      console.log('socket error');
     };
   }, []);
 
@@ -1090,6 +1115,7 @@ const Canvas = () => {
     };
 
     const BeforeUnload = async () => {
+      if (!userData) return;
       await client.patch(`/api/user-profile/${userData.profile.pk}/`, {
         online: false,
       });
@@ -1214,10 +1240,7 @@ const Canvas = () => {
             { email: data.email, avatar: data.avatar },
           ]);
       }
-      if (
-        data.type === 'elementUpdate' &&
-        data.userid !== localStorage.getItem('access_token')
-      ) {
+      if (data.type === 'elementUpdate' && data.userid !== userData.id) {
         setElements((prevState: any) => [...prevState, data.element], true);
       }
     };
@@ -1330,7 +1353,7 @@ const Canvas = () => {
         });
         socketRef?.current?.send(
           JSON.stringify({
-            userid: localStorage.getItem('access_token') || '',
+            userid: userData.id,
             type: 'elementUpdate',
             element: elementsCopy[id],
           })
@@ -1380,7 +1403,7 @@ const Canvas = () => {
 
   const handleFontColorChange = (event: any) => {
     setFontColor(event.target.value);
-    setCookie('fontColor', event.target.value, { path: `/canvas/${slug}` });
+    setCookie('fontColor', event.target.value, { path: pageURL });
   };
 
   const handleMouseDown = (event: any) => {
@@ -1586,7 +1609,7 @@ const Canvas = () => {
       try {
         socketRef?.current?.send(
           JSON.stringify({
-            userid: localStorage.getItem('access_token') || '',
+            userid: userData.id,
             type: 'elementUpdate',
             element: elements[index],
           })
@@ -1746,7 +1769,7 @@ const Canvas = () => {
     setCookie(
       'panOffset',
       { x: panOffset.x, y: panOffset.y },
-      { path: `/canvas/${slug}` }
+      { path: pageURL }
     );
   };
 
@@ -1810,8 +1833,8 @@ const Canvas = () => {
     formData.append('file', event.target.files[0]);
     formData.append('name', event.target.files[0].name);
     client.post('/api/font/', formData).then(
-      (response) => {
-        console.log(response);
+      () => {
+        // console.log(response);
         // setFontFamily(event.target.files[0].name);
       },
       (error) => {
@@ -1871,7 +1894,7 @@ const Canvas = () => {
         }
         //wait for fonts to load
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     };
 
@@ -1889,6 +1912,10 @@ const Canvas = () => {
         userid: userData.id,
       })
     );
+  };
+
+  const handleFontUpload = () => {
+    fontInputRef!.current!.click();
   };
 
   const handleSocketDemoSend = () => {
@@ -1937,6 +1964,12 @@ const Canvas = () => {
 
   const handleDemoModeChange = (e: any) => {
     setDemoMode(e.target.checked);
+    //open full screen
+    if (e.target.checked) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
   };
 
   const handleAutoShapeChange = (e: any) => {
@@ -1977,6 +2010,10 @@ const Canvas = () => {
 
   return (
     <div className='canvas-container'>
+      <script
+        src='https://unpkg.com/ml5@0.12.2/dist/ml5.min.js'
+        type='text/javascript'
+      ></script>
       <title>{canvasData?.title} - Canvas</title>
       <meta
         name='viewport'
@@ -2131,12 +2168,18 @@ const Canvas = () => {
         </div> */}
       </div>
 
-      <select value={gridType} onChange={(e) => setGridType(e.target.value)}>
+      <select
+        className='grid-selection'
+        value={gridType}
+        onChange={(e) => setGridType(e.target.value)}
+      >
         <option value='lined'>Lined</option>
         <option value='dotted'>Dotted</option>
         <option value='none'>None</option>
       </select>
       <input
+        className='file-input-font'
+        ref={fontInputRef}
         type='file'
         accept='.woff, .woff2, .ttf, .otf'
         id='fontFamily'
@@ -2306,6 +2349,7 @@ const Canvas = () => {
             position: 'absolute',
             width: 30,
             height: 30,
+            display: 'none',
           }}
         >
           <img className='cursor_avatar' src={member.avatar} />
@@ -2343,13 +2387,13 @@ const Canvas = () => {
           <div
             key={index}
             className={
-              reaction.src ===
-              `http://127.0.0.1:8001/static/icons/reactions/clown.svg`
+              reaction.src === `${staticBasicReactionsUrl}clown.svg`
                 ? 'clown'
                 : 'reaction-animation'
             }
           >
             <object
+              id={`${staticBasicReactionsUrl}clown.svg`}
               style={{
                 pointerEvents: 'none',
               }}
@@ -2359,6 +2403,9 @@ const Canvas = () => {
             />
           </div>
         ))}
+      </div>
+      <div className='upload-font-button' onClick={handleFontUpload}>
+        Upload Font
       </div>
       <div className='list-choice'>
         <div className='list-choice-title'>{fontFamily}</div>

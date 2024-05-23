@@ -63,11 +63,11 @@ class CanvasView(APIView):
         canvas = Canvas.objects.get(slug=slug) 
         element = request.data.get("element", None)
         if element is not None:
-            if CanvasElement.objects.filter(element=element).exists():
-                element_object = CanvasElement.objects.get(element=element)
-                element_object.element = element
-                return Response(status=status.HTTP_202_ACCEPTED)
-            element_object = CanvasElement.objects.create(element=element)
+            # if CanvasElement.objects.filter(element=element).exists():
+            #     element_object = CanvasElement.objects.get(element=element)
+            #     element_object.element = element
+            #     return Response(status=status.HTTP_202_ACCEPTED)
+            element_object = CanvasElement.objects.create(element=element, user=request.user)
             element_object.save()
             canvas.elements.add(element_object)
             return Response(status=status.HTTP_201_CREATED)
@@ -146,14 +146,14 @@ class FontUploadView(APIView):
         return Response(serializer.data)
     
 
-class VoiceRecordUploadView(APIView):
+class FileUploadView(APIView):
     authentication_classes = [SessionAuthentication, ]
     permission_classes = [IsAuthenticated, ]
     def post(self, request):
-        fs = FileSystemStorage(location='media/voice_records')
+        fs = FileSystemStorage(location='media/file')
         file_name = fs.save(f"{uuid.uuid4()}.{request.data['file'].name.split('.')[-1]}.mp3", request.data['file'])
         request.data['file'] = fs.url(file_name)
-        obj = VoiceRecord.objects.create(file=file_name, user=request.user)
+        obj = File.objects.create(file=file_name)
         obj.save()
 
         return Response(status=status.HTTP_201_CREATED)
