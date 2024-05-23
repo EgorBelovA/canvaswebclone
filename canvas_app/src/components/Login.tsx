@@ -56,7 +56,7 @@ const Login = () => {
         email: email,
         password: password,
       })
-      .then(async function (e) {
+      .then(function (e) {
         console.log(e);
         // const { data } = await client.post('/api/token/', {
         //   email: email,
