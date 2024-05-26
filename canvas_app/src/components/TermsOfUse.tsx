@@ -23,7 +23,9 @@ const TermsOfUse = () => {
             fontSize: '20px',
             fontFamily: 'Breath_Demo',
             padding: '15px',
+            position: 'relative',
           }}
+          className='flex1'
         >
           <h2>Terms of Use</h2>
           <br />

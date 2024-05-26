@@ -43,32 +43,46 @@ const Dashboard = () => {
   // };
 
   const titleRef = useRef<HTMLInputElement>(null);
+  const backgroundDarkRef = useRef<HTMLDivElement>(null);
 
   const handleCanvasModal = () => {
+    backgroundDarkRef.current!.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    scrollTo(0, 0);
     setIsModalCanvasForm(true);
   };
 
-  const handleCanvasCreate = (e: any) => {
-    e.preventDefault();
+  const handleCanvasCreate = () => {
     client.post('/api/canvas/create/new/', {
       title: titleRef.current!.value,
     });
+
+    window.location.reload();
   };
+
+  const [buttonText, setButtonText] = useState('New Canvas');
+
+  useLayoutEffect(() => {
+    const handleTextChange = () => {
+      if (window.innerWidth < 1000) {
+        setButtonText('+');
+      } else {
+        setButtonText('New Canvas');
+      }
+    };
+    window.addEventListener('resize', handleTextChange);
+    handleTextChange();
+    return () => {
+      window.removeEventListener('resize', handleTextChange);
+    };
+  }, [buttonText]);
 
   return (
     <div>
       <DashboardHeader userData={userData} />
-      <div>
-        <button
-          onClick={handleCanvasModal}
-          type='button'
-          className='create-button'
-        >
-          New canvas
-        </button>
-      </div>
+      <div ref={backgroundDarkRef} className='background-dark'></div>
       <div className='cards-container'>
-        {canvases.map((item: any) => (
+        {canvases.reverse().map((item: any) => (
           <a key={item.id} className='card' href={'/canvas/' + item.slug}>
             <div className='image-container'>
               <img src={item.image} alt={item.title} className='card-image' />
@@ -83,7 +97,11 @@ const Dashboard = () => {
             <div className='modal-canvas-title'>Canvas Form</div>
             <div
               className='modal-close-button'
-              onClick={() => setIsModalCanvasForm(false)}
+              onClick={() => {
+                setIsModalCanvasForm(false);
+                backgroundDarkRef.current!.classList.remove('active');
+                document.body.style.overflow = 'auto';
+              }}
             >
               X
             </div>
@@ -119,6 +137,15 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+      <div className='create-button-container'>
+        <button
+          onClick={handleCanvasModal}
+          type='button'
+          className='create-button'
+        >
+          {buttonText}
+        </button>
+      </div>
     </div>
   );
 };

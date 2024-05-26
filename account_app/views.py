@@ -20,6 +20,16 @@ from .backends import GoogleAuthBackend
 from django.contrib import messages
 from yookassa import Configuration, Payment, Webhook
 import uuid
+import yoomoney
+import json 
+from rest_framework import viewsets, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import *
+from .serializers import *
+from yookassa import Configuration
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -131,14 +141,6 @@ def google_callback(request):
 
 
 
-from rest_framework import viewsets, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import *
-from .serializers import *
-from yookassa import Configuration
-from django.shortcuts import get_object_or_404
-
 Configuration.account_id = "your_shop_id"
 Configuration.secret_key = "your_secret_key"
 
@@ -152,31 +154,42 @@ from django.http import HttpResponse
 from yookassa.domain.notification import WebhookNotification
 
 
+
 class GetWebhookView(APIView):
+    permission_classes = [permissions.AllowAny,]
+    @csrf_exempt
     def post(self, request):
-        # event_json = request.data  # Assuming YooKassa sends data in the request body
-        # notification_object = WebhookNotification(event_json)
-        # event = notification_object.object
-        print("WEBHOOK", request.data)
+        event_json = request.data
+        if len(event_json.get("label")):
+            ids = list(map(int, event_json["label"]))
 
-        # Process the event and create a Subscription
-        # subscription = Subscription.objects.create(
-        #     user=event.user,
-        #     plan=event.plan,
-        #     yookassa_subscription_id=event.id,
-        #     status=event.status
-        # )
+            for id in ids:
+                profile = get_object_or_404(UserProfile, id=id)
+                if profile.subscription:
+                    profile.subscription.expires_at += timezone.timedelta(minutes=5)
+                    profile.subscription.save()
+                else:
+                    subscription = Subscription.objects.create()
+                    subscription.expires_at = timezone.now() + timezone.timedelta(minutes=5)
+                    subscription.save()
+                    profile.subscription = subscription
+                    profile.save()
 
-        # You can add more processing logic here if needed
-
-        # Return a success response
-        return Response({'message': 'Webhook received and processed successfully'}, status=200)
+        return Response(status=200)
 
 
-import yoomoney
-api = yoomoney.Client(os.getenv('YOOMONEY_CLIENT_ID'))
+# yoomoney.Authorize(
+#     client_id=os.getenv('YOOMONEY_CLIENT_ID'),
+#     redirect_uri="https://www.canvas-professional.com/api/yookassa-webhook/",
+#     scope=["account-info", 
+#            "operation-history",
+#            "operation-details",
+#             "incoming-transfers", 
+#             "payment-p2p", 
+#             "payment-shop"]
+#     )
 
-import requests
+
 from urllib.parse import urlencode
 class CreatePaymentView(APIView):
     def get(self, request):
@@ -197,10 +210,6 @@ class CreatePaymentView(APIView):
         return Response({'payment_form_url': quickpay.redirected_url})
 
 
-import hmac 
-import json 
-import hashlib 
-import requests
 
 # class CreatePaymentView(APIView):
 #     def post(self, request):

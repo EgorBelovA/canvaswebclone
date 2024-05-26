@@ -17,7 +17,7 @@ const Notifications = (props: any) => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationsLogo, _] = useState(
+  const [notificationsLogo, setNotificationsLogo] = useState(
     '/static/icons/notifications-bell.svg'
   );
   const socketRequestRef = useRef<WebSocket | null>(null);
@@ -34,6 +34,14 @@ const Notifications = (props: any) => {
       })
     );
   };
+
+  useLayoutEffect(() => {
+    if (notifications.length) {
+      setNotificationsLogo('/static/icons/notifications-bell-new.svg');
+      return;
+    }
+    setNotificationsLogo('/static/icons/notifications-bell.svg');
+  }, [notificationsLogo, notifications]);
 
   useLayoutEffect(() => {
     const websocket_url = `${wsProtocol}://${location.host}/user/${props.userData.id}/`;

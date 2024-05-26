@@ -8,10 +8,13 @@ services:
       POSTGRES_DB: canvas_db
       POSTGRES_USER: canvas_db
       POSTGRES_PASSWORD: canvas_db
+    expose:
+      - '5430'
     ports:
-      - '5432:5432'
+      - '5430:5430'
     volumes:
       - pg_data:/var/lib/postgresql/data
+    command: -p 5430
 
   canvas:
     build:
@@ -20,9 +23,10 @@ services:
       - '8000:8000'
     restart: always
     depends_on:
-      #   - postgres-db
+      - postgres-db
       - redis
     environment:
+      PYTHONUNBUFFERED: 'True'
       DEBUG: 'False'
       DB_NAME: 'canvas'
       DB_USER: 'canvas'
@@ -32,6 +36,7 @@ services:
       SECRET_KEY: 'secret'
     volumes:
       - static_volume:/app/static
+      - media_volume:/app/media
 
   redis:
     image: redis:latest
@@ -75,3 +80,4 @@ services:
 volumes:
   static_volume:
   pg_data:
+  media_volume:

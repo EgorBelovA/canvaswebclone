@@ -7,7 +7,7 @@ const EmailVerification = () => {
     <div className='index-container'>
       <div className='index-main'>
         <Header />
-        <div className='email-verification-container'>
+        <div className='email-verification-container flex1'>
           <h4>The confirmation email has been sent!</h4>
           <div>
             <div>

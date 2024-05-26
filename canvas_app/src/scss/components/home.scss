@@ -12,6 +12,7 @@ html {
   background-color: #000 !important;
   min-height: 100vh;
   max-width: 100vw;
+  // overflow: hidden !important;
   // overflow-x: hidden;
   // overflow: hidden !important;
 }
@@ -31,18 +32,20 @@ html.active {
   // height: 100%;
   // min-height: 100vh;
   // background-color: #d9d9d9;
-  // overflow: hidden;
+  overflow: auto;
   position: relative;
 }
 
+.flex1 {
+  flex: 1;
+}
+
 .index-main {
-  // overflow-y: hidden;
-  overflow-x: hidden;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  display: block;
-  position: absolute;
+  // justify-content: space-between;
+  position: relative;
   width: 1000px;
   min-height: 100%;
 
@@ -199,6 +202,7 @@ html.active {
   padding-left: 15px;
   padding-right: 15px;
   margin-bottom: 10px;
+  padding-top: 10px;
   font-family: 'Breath_Demo';
   z-index: 1;
   color: #fff;
@@ -206,10 +210,7 @@ html.active {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  bottom: 0;
-  height: auto;
   font-size: 16px;
-  position: absolute;
 
   @media screen and (max-width: 480px) {
     font-size: 14px;
@@ -237,10 +238,26 @@ html.active {
   }
 
   .footer-region {
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     align-self: flex-end;
+    gap: 2px;
+  }
+
+  .footer-region-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    width: 16px;
+    height: 16px;
+    margin-bottom: 4px;
+    filter: invert(100%);
   }
 
   .footer-copyright {
@@ -484,17 +501,16 @@ html.active {
 }
 
 .menu-items-wrapper {
-  display: none;
+  visibility: hidden;
   height: var(--viewport-height);
   background-color: #000;
   width: 450px;
   z-index: 5;
   opacity: 0;
-  visibility: hidden;
   position: absolute;
-  overflow-y: scroll;
+  overflow-y: auto;
   transform: translate(100%);
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s cubic-bezier(0.895, 0.03, 0.685, 0.22);
   top: 0;
   right: 0;
   @media screen and (max-width: 450px) {
@@ -509,6 +525,7 @@ html.active {
     visibility: visible;
     opacity: 1;
     transform: translateX(0);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   }
 }
 .menu-items {
@@ -518,7 +535,6 @@ html.active {
   opacity: 0;
   padding: 20px;
   padding-top: 30px;
-  display: none;
   background-color: #000;
   min-height: 350px;
   width: 100%;
@@ -526,12 +542,14 @@ html.active {
   z-index: 5;
   color: #fff;
   transform: translate(100%);
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s cubic-bezier(0.895, 0.03, 0.685, 0.22);
   text-align: left;
   overflow-x: hidden;
+  visibility: hidden;
 
   .menu-item-transition {
     transform: translateX(100%);
+    transition-delay: 0.3s;
   }
 
   .menu-item {
@@ -539,7 +557,6 @@ html.active {
     height: 50px;
     list-style: none;
     user-select: none;
-    transition: all 0.2s ease-in-out;
 
     a {
       width: 100%;
@@ -585,7 +602,9 @@ html.active {
 
 .menu-items.active {
   opacity: 1;
+  visibility: visible;
   transform: translateX(0);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   .menu-item-transition {
     transform: translateX(0);
   }
@@ -605,7 +624,6 @@ html.active {
 }
 
 .background-dark {
-  display: none;
   opacity: 0;
   visibility: hidden;
   position: absolute;
@@ -615,7 +633,7 @@ html.active {
   height: 100%;
   background-color: #000;
   z-index: 4;
-  transition: opacity 1s ease;
+  transition: all 0.7s ease;
 
   @media screen and (max-width: 1000px) {
     display: block;
@@ -625,5 +643,5 @@ html.active {
 .background-dark.active {
   visibility: visible;
   opacity: 0.75;
-  transition: opacity 0.2s ease;
+  transition: all 0.4s ease;
 }

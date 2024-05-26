@@ -74,7 +74,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    # subscriptions = SubscriptionSerializer(read_only=True)
+    subscription = SubscriptionSerializer(read_only=True)
     class Meta:
         model = UserProfile
         fields = 'online', 'subscription', 'pk'

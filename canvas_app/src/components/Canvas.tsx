@@ -11,6 +11,7 @@ import '../scss/components/canvas.scss';
 import axios from 'axios';
 import Notifications from './Notifications';
 import { useCookies } from 'react-cookie';
+// import Language from './Language';
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
 axios.defaults.xsrfCookieName = 'csrftoken';
@@ -403,9 +404,19 @@ const usePressedKeys = () => {
 };
 
 const Canvas = () => {
+  const [isSpecialTools, setIsSpecialTools] = useState<any>(false);
+  const [shapesToolIcon, setShapesToolIcon] = useState('shapes.svg');
+  const SpecialToolsRef = useRef<HTMLDivElement>(null);
+  const toolsContainerRef = useRef<HTMLDivElement>(null);
+  const pencilBoxButtonRef = useRef<HTMLDivElement>(null);
+  const shapeBoxButtonRef = useRef<HTMLDivElement>(null);
+  const shapesBoxRef = useRef<HTMLDivElement>(null);
+  const pencilBoxRef = useRef<HTMLDivElement>(null);
+  // const language = Language();
   const fontInputRef = useRef<HTMLInputElement>(null);
   const [autoShapeMode, setAutoShapeMode] = useState(false);
   const [isShapeBox, setIsShapeBox] = useState<boolean>(false);
+  const [isPencilBox, setIsPencilBox] = useState<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasMiniRef = useRef<HTMLCanvasElement>(null);
   const [modelML5, setModelML5] = useState<any>(null);
@@ -425,6 +436,7 @@ const Canvas = () => {
     height: window.innerHeight,
   });
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const textAreaAdditionalContainerRef = useRef<HTMLDivElement>(null);
   const pressedKeys = usePressedKeys();
   const colorsRef = useRef<HTMLDivElement>(null);
   const [canvasData, setCanvasData] = useState<any>({});
@@ -452,6 +464,10 @@ const Canvas = () => {
     { family: 'Brush Script MT' },
   ]);
   const [fonts, setFonts] = useState<any>(default_fonts);
+  const fontSizes = [
+    12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48,
+    50,
+  ];
 
   const [userData, setUserData] = useState<any>({});
 
@@ -465,6 +481,32 @@ const Canvas = () => {
       console.log(e.data.user);
     });
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (
+        shapeBoxButtonRef.current &&
+        !shapeBoxButtonRef.current.contains(event.target)
+      ) {
+        setIsShapeBox(false);
+      }
+
+      if (
+        toolsContainerRef.current &&
+        toolsContainerRef.current.contains(event.target) &&
+        !pencilBoxButtonRef.current?.contains(event.target) &&
+        !pencilBoxRef.current?.contains(event.target)
+      ) {
+        setIsPencilBox(false);
+      }
+    };
+
+    window.addEventListener('click', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('click', handleClickOutside);
+    };
+  }, [isShapeBox, isPencilBox]);
 
   function sortDefaultFontsByFamily(
     fonts: { family: string }[]
@@ -592,13 +634,11 @@ const Canvas = () => {
     };
   }, [panOffset, elements]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.getElementsByTagName('html')[0].style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden !important';
-
-    return () => {
-      document.body.style.overflow = 'visible';
-    };
+    document.getElementsByTagName('body')[0].style.overflow = 'hidden';
+    document.getElementsByTagName('html')[0].style.touchAction = 'none';
+    document.getElementsByTagName('body')[0].style.userSelect = 'none';
   }, []);
 
   useLayoutEffect(() => {
@@ -629,6 +669,17 @@ const Canvas = () => {
       window.removeEventListener('resize', onResize, false);
     };
   }, [scale]);
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    const contextMenu = (e: any) => {
+      e.preventDefault();
+    };
+    window.addEventListener('contextmenu', contextMenu);
+    return () => {
+      window.removeEventListener('contextmenu', contextMenu);
+    };
+  }, []);
 
   const onStrokeColorUpdate = (e: any) => {
     setStrokeColor(e.target.value);
@@ -748,7 +799,7 @@ const Canvas = () => {
     let stream: MediaStream;
 
     if (voiceRecord) {
-      if (navigator.mediaDevices.getUserMedia) {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices
           .getUserMedia({ audio: true })
           .then((userStream) => {
@@ -939,6 +990,29 @@ const Canvas = () => {
   const loadingRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
+    switch (tool) {
+      case 'ellipse':
+        setShapesToolIcon('circle.svg');
+        break;
+      case 'rectangle':
+        setShapesToolIcon('square.svg');
+        break;
+      case 'triangle':
+        setShapesToolIcon('triangle.svg');
+        break;
+      case 'star':
+        setShapesToolIcon('star.svg');
+        break;
+      case 'line':
+        setShapesToolIcon('line.svg');
+        break;
+      default:
+        setShapesToolIcon('shapes.svg');
+        break;
+    }
+  }, [tool]);
+
+  useLayoutEffect(() => {
     if (!permission) {
       loadingRef!.current!.style.opacity = '1';
       canvasRef!.current!.style.display = 'none';
@@ -952,9 +1026,17 @@ const Canvas = () => {
       const reactionChooseContainer = document.querySelector(
         '.reaction-choose-container'
       );
+      const zoomContainer = document.querySelector(
+        '.zoom-container'
+      ) as HTMLInputElement;
+      const logoContainer = document.querySelector(
+        '.logo-container'
+      ) as HTMLInputElement;
       toolSelection!.classList.add('loading');
       canvasHeader!.classList.add('loading');
       reactionChooseContainer!.classList.add('loading');
+      zoomContainer!.classList.add('loading');
+      logoContainer!.classList.add('loading');
 
       setTimeout(() => {
         canvasRef!.current!.style.display = 'unset';
@@ -965,8 +1047,10 @@ const Canvas = () => {
           toolSelection!.classList.remove('loading');
           canvasHeader!.classList.remove('loading');
           reactionChooseContainer!.classList.remove('loading');
-        }, 1000);
-      }, 1000);
+          zoomContainer!.classList.remove('loading');
+          logoContainer!.classList.remove('loading');
+        }, 1500);
+      }, 1500);
     }
   }, [permission]);
 
@@ -982,9 +1066,13 @@ const Canvas = () => {
   };
 
   useEffect(() => {
-    canvasRef!.current!.addEventListener('wheel', panOrZoomFunction);
+    canvasRef!.current!.addEventListener('wheel', panOrZoomFunction, {
+      passive: false,
+    } as AddEventListenerOptions);
     return () => {
-      canvasRef!.current!.removeEventListener('wheel', panOrZoomFunction);
+      canvasRef!.current!.removeEventListener('wheel', panOrZoomFunction, {
+        passive: false,
+      } as AddEventListenerOptions);
     };
   }, [panOffset]);
 
@@ -1116,7 +1204,7 @@ const Canvas = () => {
 
     const BeforeUnload = async () => {
       if (!userData) return;
-      await client.patch(`/api/user-profile/${userData.profile.pk}/`, {
+      client.patch(`/api/user-profile/${userData.profile.pk}/`, {
         online: false,
       });
       socketRef!.current!.send(
@@ -1330,23 +1418,28 @@ const Canvas = () => {
         }
 
         if (
-          !canvasData.fonts.some(
-            (font: any) => font.name === elementsCopy[id].options.fontFamily
+          !default_fonts.some(
+            (font: any) => font.family === elementsCopy[id].options.fontFamily
           )
-        ) {
-          client
-            .patch(`/api/canvas/update/${slug}/`, {
-              font: elementsCopy[id].options.fontFamily,
-            })
-            .then(
-              (response) => {
-                console.log(response);
-              },
-              (error) => {
-                console.log(error);
-              }
-            );
-        }
+        )
+          if (
+            !canvasData.fonts.some(
+              (font: any) => font.name === elementsCopy[id].options.fontFamily
+            )
+          ) {
+            client
+              .patch(`/api/canvas/update/${slug}/`, {
+                font: elementsCopy[id].options.fontFamily,
+              })
+              .then(
+                (response) => {
+                  console.log(response);
+                },
+                (error) => {
+                  console.log(error);
+                }
+              );
+          }
 
         client.patch(`/api/canvas/${slug}/`, {
           element: elementsCopy[id],
@@ -1375,31 +1468,53 @@ const Canvas = () => {
 
   const getMouseCoordinates = (event: any) => {
     const clientX =
-      ((event.clientX ||
-        event.changedTouches[0].clientX ||
-        event.touches[0].clientX) -
+      (((event.clientX && event.clientX) ||
+        (event.changedTouches &&
+          event.changedTouches[0] &&
+          event.changedTouches[0].clientX) ||
+        (event.touches && event.touches[0] && event.touches[0].clientX)) -
         panOffset.x * scale +
         scaleOffset.x) /
       scale;
     const clientY =
-      ((event.clientY ||
-        event.changedTouches[0].clientY ||
-        event.touches[0].clientY) -
+      (((event.clientY && event.clientY) ||
+        (event.changedTouches &&
+          event.changedTouches[0] &&
+          event.changedTouches[0].clientY) ||
+        (event.touches && event.touches[0] && event.touches[0].clientY)) -
         panOffset.y * scale +
         scaleOffset.y) /
       scale;
     return { clientX, clientY };
   };
 
+  // const getMouseCoordinates = (event: any) => {
+  //   const clientX =
+  //     ((event.clientX ||
+  //       event.changedTouches[0].clientX ||
+  //       event.touches[0].clientX) -
+  //       panOffset.x * scale +
+  //       scaleOffset.x) /
+  //     scale;
+  //   const clientY =
+  //     ((event.clientY ||
+  //       event.changedTouches[0].clientY ||
+  //       event.touches[0].clientY) -
+  //       panOffset.y * scale +
+  //       scaleOffset.y) /
+  //     scale;
+  //   return { clientX, clientY };
+  // };
+
   const handleStrokeSizeChange = (event: any) => {
     setStrokeSize(parseInt(event.target.value));
     setCookie('strokeSize', event.target.value, { path: pageURL });
   };
 
-  const handleFontSizeChange = (event: any) => {
-    setFontSize(parseInt(event.target.value));
-    setCookie('fontSize', event.target.value, { path: pageURL });
-  };
+  // const handleFontSizeChange = (event: any) => {
+  //   setFontSize(parseInt(event.target.value));
+  //   setCookie('fontSize', event.target.value, { path: pageURL });
+  // };
 
   const handleFontColorChange = (event: any) => {
     setFontColor(event.target.value);
@@ -1408,6 +1523,7 @@ const Canvas = () => {
 
   const handleMouseDown = (event: any) => {
     if (preventDefault) return;
+    if (event.touches && event.touches.length > 1) return;
     if (action === 'writing') return;
 
     const { clientX, clientY } = getMouseCoordinates(event);
@@ -1462,6 +1578,7 @@ const Canvas = () => {
 
   const handleMouseMove = (event: any) => {
     if (preventDefault) return;
+    if (event.touches && event.touches.length > 1) return;
     const { clientX, clientY } = getMouseCoordinates(event);
     if (action === 'panning') {
       const deltaX = clientX - startPanMousePosition.x;
@@ -1572,13 +1689,25 @@ const Canvas = () => {
   };
 
   useLayoutEffect(() => {
-    loadModel();
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/ml5@0.12.2/dist/ml5.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      loadModel();
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   const [_, setShapeRecognitionResult] = useState(null);
 
   const handleMouseUp = (event: any) => {
     if (preventDefault) return;
+    if (event.touches && event.touches.length > 1) return;
     const { clientX, clientY } = getMouseCoordinates(event);
     if (selectedElement) {
       if (
@@ -1775,12 +1904,37 @@ const Canvas = () => {
 
   const [modalCanvasSettings, setModalCanvasSettings] = useState(false);
 
-  const handleBlur = (event: any) => {
-    const { id, x1, y1, type } = selectedElement;
-    setAction('none');
-    setSelectedElement(null);
-    updateElement(id, x1, y1, null, null, type, { text: event.target.value });
-  };
+  useEffect(() => {
+    if (action === 'writing') {
+      let isFirstClick = true;
+
+      const handleClickOutsideSettings = (event: any) => {
+        if (isFirstClick) {
+          isFirstClick = false;
+          return;
+        }
+
+        if (textAreaAdditionalContainerRef.current?.contains(event.target)) {
+          textAreaRef.current?.focus();
+          return;
+        }
+        if (selectedElement) {
+          const { id, x1, y1, type } = selectedElement;
+          setAction('none');
+          setSelectedElement(null);
+          updateElement(id, x1, y1, null, null, type, {
+            text: textAreaRef.current?.value,
+          });
+        }
+      };
+
+      window.addEventListener('click', handleClickOutsideSettings);
+
+      return () => {
+        window.removeEventListener('click', handleClickOutsideSettings);
+      };
+    }
+  }, [action, selectedElement, fontColor, fontSize, fontFamily]);
 
   const onZoom = (increment: number) => {
     // const targetScale = Math.min(Math.max(scale + increment, 0.01), 5);
@@ -1903,6 +2057,8 @@ const Canvas = () => {
 
   const modalCanvasSettingsRef = useRef<HTMLDivElement>(null);
 
+  const [isSliderStrokeShow, setIsSliderStrokeShow] = useState(false);
+
   const sendReaction = (reaction: any) => {
     const reactionSrc = reaction.target.getElementsByTagName('object')[0].data;
     socketRef!.current!.send(
@@ -1913,8 +2069,41 @@ const Canvas = () => {
       })
     );
   };
+  const errorAlertRef = useRef<HTMLDivElement>(null);
+  const [subscription, setSubscription] = useState(false);
+  const [errorAlert, setErrorAlert] = useState<string>('');
+
+  useEffect(() => {
+    if (errorAlert) {
+      errorAlertRef!.current!.classList.remove('hidden');
+      setTimeout(() => {
+        errorAlertRef!.current!.classList.add('hidden');
+        setTimeout(() => {
+          setErrorAlert('');
+        }, 500);
+      }, 3000);
+    }
+  }, [errorAlert]);
+
+  useLayoutEffect(() => {
+    if (!userData.profile) return;
+    if (!userData.profile.subscription) return;
+    const expiry = new Date(userData.profile.subscription.expires_at);
+    const currentTime = new Date();
+    const time_to_expire = expiry.getTime() - currentTime.getTime();
+    if (time_to_expire > 0) {
+      setSubscription(true);
+    }
+    setTimeout(() => {
+      setSubscription(false);
+    }, time_to_expire);
+  }, [userData]);
 
   const handleFontUpload = () => {
+    if (!subscription) {
+      setErrorAlert('Please get premium subscription to add fonts');
+      return;
+    }
     fontInputRef!.current!.click();
   };
 
@@ -1962,15 +2151,48 @@ const Canvas = () => {
     `${staticBasicReactionsUrl}clown.svg`,
   ];
 
-  const handleDemoModeChange = (e: any) => {
-    setDemoMode(e.target.checked);
-    //open full screen
-    if (e.target.checked) {
+  const handleDemoModeChange = () => {
+    setDemoMode(!demoMode);
+    if (!demoMode) {
       document.documentElement.requestFullscreen();
     } else {
       document.exitFullscreen();
     }
   };
+
+  useEffect(() => {
+    const handleTouchMove = (event: any) => {
+      if (event.touches && event.touches.length > 1) {
+        const touch = event.touches[0];
+
+        setPanOffset((prev) => ({
+          x: prev.x + (touch.clientX - startPanMousePosition.x) / 3,
+          y: prev.y + (touch.clientY - startPanMousePosition.y) / 3,
+        }));
+        setScale(1);
+        // setErrorAlert(`${panOffset.x} ${panOffset.y}`);
+        event.preventDefault();
+      }
+    };
+
+    const handleTouchStart = (event: any) => {
+      if (event.touches && event.touches.length > 1) {
+        const touch = event.touches[0];
+        setStartPanMousePosition({
+          x: touch.clientX,
+          y: touch.clientY,
+        });
+      }
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, false);
+    window.addEventListener('touchstart', handleTouchStart, false);
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove, false);
+      window.removeEventListener('touchstart', handleTouchStart, false);
+    };
+  }, [panOffset, startPanMousePosition, scale]);
 
   const handleAutoShapeChange = (e: any) => {
     setAutoShapeMode(e.target.checked);
@@ -2008,12 +2230,23 @@ const Canvas = () => {
     setModalCanvasSettings(true);
   };
 
+  const [textAreaSize, setTextAreaSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    if (textAreaRef.current) {
+      const textAreaResize = () => {
+        if (textAreaRef.current)
+          setTextAreaSize({
+            width: textAreaRef.current!.clientWidth,
+            height: textAreaRef.current!.clientHeight,
+          });
+      };
+
+      new ResizeObserver(textAreaResize).observe(textAreaRef.current!);
+    }
+  }, [textAreaRef.current]);
+
   return (
     <div className='canvas-container'>
-      <script
-        src='https://unpkg.com/ml5@0.12.2/dist/ml5.min.js'
-        type='text/javascript'
-      ></script>
       <title>{canvasData?.title} - Canvas</title>
       <meta
         name='viewport'
@@ -2022,7 +2255,15 @@ const Canvas = () => {
 
       <div className='circular-cursor'></div>
 
-      <div className='sidebar-tools-container'>
+      <a className='logo-container' href='/dashboard/'>
+        <object
+          className='logo-wings'
+          type='image/svg+xml'
+          data='/static/icons/logo_wings.svg'
+        />
+      </a>
+
+      <div className='sidebar-tools-container' ref={toolsContainerRef}>
         <div
           id='selection'
           className='tool-item'
@@ -2036,27 +2277,26 @@ const Canvas = () => {
             id='object'
           />
         </div>
-        <div className='shape-selection tool-item'>
-          <div
-            className='button-sidebar'
-            onClick={() => setIsShapeBox(!isShapeBox)}
-          >
-            <object
-              style={{ pointerEvents: 'none' }}
-              type='image/svg+xml'
-              data={`/static/icons/shapes.svg`}
-              width='24px'
-              id='object'
-            />
-          </div>
+        <div
+          className='tool-item'
+          onClick={() => setIsShapeBox(!isShapeBox)}
+          ref={shapeBoxButtonRef}
+        >
+          <object
+            style={{ pointerEvents: 'none' }}
+            type='image/svg+xml'
+            data={`/static/icons/${shapesToolIcon}`}
+            width='24px'
+            id='object'
+          />
         </div>
         <div
           className='tool-item'
-          onClick={() => handleToolChange('pencil')}
-          id='pencil'
+          onClick={() => setIsPencilBox(!isPencilBox)}
+          ref={pencilBoxButtonRef}
         >
           <object
-            style={{ pointerEvents: 'none', position: 'fixed' }}
+            style={{ pointerEvents: 'none', position: 'absolute' }}
             type='image/svg+xml'
             data={`/static/icons/pen.svg`}
             width='24px'
@@ -2069,7 +2309,7 @@ const Canvas = () => {
           id='text'
         >
           <object
-            style={{ pointerEvents: 'none', position: 'fixed' }}
+            style={{ pointerEvents: 'none', position: 'absolute' }}
             type='image/svg+xml'
             data={`/static/icons/text.svg`}
             width='24px'
@@ -2078,26 +2318,86 @@ const Canvas = () => {
         </div>
         <div
           className='tool-item'
-          onClick={() => handleToolChange('special')}
+          onClick={() => setIsSpecialTools(!isSpecialTools)}
           id='special'
         >
           <object
-            style={{ pointerEvents: 'none', position: 'fixed' }}
+            style={{ pointerEvents: 'none', position: 'absolute' }}
             type='image/svg+xml'
             data={`/static/icons/special.svg`}
             width='24px'
             id='text'
           />
         </div>
+        {isSpecialTools && (
+          <div className='additional-box-container' ref={SpecialToolsRef}>
+            <div
+              className='tool-item'
+              onClick={handleVoiceRecordChange}
+              id='voice'
+            >
+              <input
+                type='checkbox'
+                id='voice'
+                className='input-radio-tool'
+                // name='special-tools'
+                // checked={voiceRecord}
+              />
+              <object
+                className='tool-icon'
+                type='image/svg+xml'
+                data={`/static/icons/voice.svg`}
+                width='24px'
+                id='voice'
+              />
+            </div>
+            <div className='tool-item' onClick={handleDemoModeChange} id='demo'>
+              <input
+                type='checkbox'
+                id='demoMode'
+                className='input-radio-tool'
+                // name='special-tools'
+                checked={demoMode}
+              />
+              <object
+                className='tool-icon'
+                type='image/svg+xml'
+                data={`/static/icons/demo.svg`}
+                width='24px'
+                id='demoMode'
+              />
+            </div>
+            <div
+              className='tool-item'
+              onClick={handleAutoShapeChange}
+              id='shapeRecognition'
+            >
+              <input
+                type='checkbox'
+                id='shapeRecognition'
+                className='input-radio-tool'
+                // name='special-tools'
+                checked={autoShapeMode}
+              />
+              <object
+                className='tool-icon'
+                type='image/svg+xml'
+                data={`/static/icons/shapes.svg`}
+                width='24px'
+                id='shapeRecognition'
+              />
+            </div>
+          </div>
+        )}
         {isShapeBox && (
-          <div className='additional-box-container'>
+          <div className='additional-box-container' ref={shapesBoxRef}>
             <div
               className='tool-item'
               onClick={() => handleToolChange('ellipse')}
               id='ellipse'
             >
               <object
-                style={{ pointerEvents: 'none', position: 'fixed' }}
+                style={{ pointerEvents: 'none', position: 'absolute' }}
                 type='image/svg+xml'
                 data={`/static/icons/circle.svg`}
                 width='20px'
@@ -2110,7 +2410,7 @@ const Canvas = () => {
               id='triangle'
             >
               <object
-                style={{ pointerEvents: 'none', position: 'fixed' }}
+                style={{ pointerEvents: 'none', position: 'absolute' }}
                 type='image/svg+xml'
                 data={`/static/icons/triangle.svg`}
                 width='20px'
@@ -2123,7 +2423,7 @@ const Canvas = () => {
               id='line'
             >
               <object
-                style={{ pointerEvents: 'none', position: 'fixed' }}
+                style={{ pointerEvents: 'none', position: 'absolute' }}
                 type='image/svg+xml'
                 data={`/static/icons/line.svg`}
                 width='24px'
@@ -2136,7 +2436,7 @@ const Canvas = () => {
               id='rectangle'
             >
               <object
-                style={{ pointerEvents: 'none', position: 'fixed' }}
+                style={{ pointerEvents: 'none', position: 'absolute' }}
                 type='image/svg+xml'
                 data={`/static/icons/square.svg`}
                 width='20px'
@@ -2149,12 +2449,94 @@ const Canvas = () => {
               id='star'
             >
               <object
-                style={{ pointerEvents: 'none', position: 'fixed' }}
+                style={{ pointerEvents: 'none', position: 'absolute' }}
                 type='image/svg+xml'
                 data={`/static/icons/star.svg`}
                 width='24px'
                 id='rectangle'
               />
+            </div>
+          </div>
+        )}
+
+        {isPencilBox && (
+          <div className='additional-box-container' ref={pencilBoxRef}>
+            <div
+              className='tool-item'
+              onClick={() => handleToolChange('eraser')}
+              id='eraser'
+            >
+              <input
+                type='radio'
+                id='eraser'
+                className='input-radio-tool'
+                name='tool'
+                checked={tool === 'eraser'}
+              />
+              <object
+                className='tool-icon'
+                type='image/svg+xml'
+                data={`/static/icons/eraser.svg`}
+                width='24px'
+                id='rectangle'
+              />
+            </div>
+            <div
+              className='tool-item'
+              onClick={() => handleToolChange('pencil')}
+              id='pencil'
+            >
+              <input
+                type='radio'
+                id='pencil'
+                className='input-radio-tool'
+                name='tool'
+                checked={tool === 'pencil'}
+              />
+              <object
+                className='tool-icon'
+                type='image/svg+xml'
+                data={`/static/icons/pen.svg`}
+                width='24px'
+                id='pencil'
+              />
+            </div>
+            <div className='tool-item'>
+              <div className='color-picker-stroke'>
+                <input
+                  className='stroke-color'
+                  type='color'
+                  value={strokeColor}
+                  onChange={onStrokeColorUpdate}
+                />
+              </div>
+            </div>
+            <div
+              className='tool-item'
+              onMouseOver={() => setIsSliderStrokeShow(true)}
+              onMouseLeave={() => setIsSliderStrokeShow(false)}
+            >
+              <div
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  backgroundColor: '#000',
+                }}
+              />
+              {isSliderStrokeShow && (
+                <div className='slider'>
+                  <input
+                    onChange={handleStrokeSizeChange}
+                    type='range'
+                    id='stroke-width'
+                    min='3'
+                    max='25'
+                    step='0.5'
+                    value={strokeSize}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2168,15 +2550,6 @@ const Canvas = () => {
         </div> */}
       </div>
 
-      <select
-        className='grid-selection'
-        value={gridType}
-        onChange={(e) => setGridType(e.target.value)}
-      >
-        <option value='lined'>Lined</option>
-        <option value='dotted'>Dotted</option>
-        <option value='none'>None</option>
-      </select>
       <input
         className='file-input-font'
         ref={fontInputRef}
@@ -2185,25 +2558,26 @@ const Canvas = () => {
         id='fontFamily'
         onChange={uploadFontFamily}
       />
-      <label htmlFor='fontFamily'>Upload Font</label>
-      <div style={{ position: 'fixed', zIndex: 2, bottom: 0, padding: 10 }}>
-        <button onClick={onZoomMinus}>-</button>
-        <span
-          onClick={() => {
-            onZoom(1 - scale);
-            setZoomIndex(10);
-            setCookie('zoomIndex', 10, { path: pageURL });
-          }}
-        >
-          {new Intl.NumberFormat('en-GB', { style: 'percent' }).format(scale)}{' '}
-        </span>
-        <button onClick={onZoomPlus}>+</button>
-        <span> </span>
-        <button onClick={undo}>Undo</button>
-        <button onClick={redo}>Redo</button>
-        <span> </span>
-        {/* <button onClick={handleDownload}>Download</button> */}
-        <span> </span>
+      <div className='zoom-container'>
+        <div>
+          <button onClick={onZoomMinus}>-</button>
+          <span
+            onClick={() => {
+              onZoom(1 - scale);
+              setZoomIndex(10);
+              setCookie('zoomIndex', 10, { path: pageURL });
+            }}
+          >
+            {new Intl.NumberFormat('en-GB', { style: 'percent' }).format(scale)}{' '}
+          </span>
+          <button onClick={onZoomPlus}>+</button>
+        </div>
+        <button className='undo-redo-button' onClick={undo}>
+          Undo
+        </button>
+        <button className='undo-redo-button' onClick={redo}>
+          Redo
+        </button>
         <button
           onClick={() => {
             setPanOffset({ x: 0, y: 0 });
@@ -2214,30 +2588,108 @@ const Canvas = () => {
         </button>
       </div>
       {action === 'writing' ? (
-        <textarea
-          ref={textAreaRef}
-          onBlur={handleBlur}
-          style={{
-            position: 'fixed',
-            top:
-              (selectedElement.y1 - 2) * scale +
-              panOffset.y * scale -
-              scaleOffset.y,
-            left:
-              selectedElement.x1 * scale + panOffset.x * scale - scaleOffset.x,
-            font: `${fontSize * scale}px ${fontFamily}`,
-            color: fontColor,
-            margin: 0,
-            padding: 0,
-            border: 0,
-            outline: 0,
-            resize: 'none',
-            overflow: 'hidden',
-            whiteSpace: 'pre',
-            background: 'transparent',
-            zIndex: 2,
-          }}
-        />
+        <div ref={textAreaAdditionalContainerRef}>
+          <textarea
+            ref={textAreaRef}
+            spellCheck='false'
+            style={{
+              position: 'fixed',
+              top:
+                (selectedElement.y1 - 2) * scale +
+                panOffset.y * scale -
+                scaleOffset.y,
+              left:
+                selectedElement.x1 * scale +
+                panOffset.x * scale -
+                scaleOffset.x,
+              font: `${fontSize * scale}px ${fontFamily}`,
+              color: fontColor,
+              margin: 0,
+              padding: 0,
+              border: '3px solid lightblue',
+              outline: 0,
+              resize: 'both',
+              width: 100,
+              maxWidth: 500,
+              height: 'auto',
+              wordBreak: 'break-word',
+              overflow: 'auto',
+              // whiteSpace: 'pre',
+              background: 'transparent',
+              zIndex: 2,
+            }}
+          />
+          <div
+            className='text-editor-container'
+            style={{
+              top:
+                (selectedElement.y1 - 2) * scale +
+                panOffset.y * scale -
+                scaleOffset.y +
+                (textAreaSize.height || 0) +
+                20,
+              left:
+                selectedElement.x1 * scale +
+                panOffset.x * scale -
+                scaleOffset.x -
+                150 +
+                (textAreaSize.width || 0) / 2,
+            }}
+          >
+            <div className='text-editor-wrapper'>
+              <div className='text-editor'>
+                <div className='list-choice'>
+                  <div className='list-choice-title'>{fontFamily}</div>
+                  <div className='list-choice-objects'>
+                    {fonts.map((font: any, index: any) => (
+                      <label
+                        style={{ fontFamily: font.family }}
+                        onClick={() => {
+                          setFontFamily(font.family);
+                          setCookie('fontFamily', font.family, {
+                            path: pageURL,
+                          });
+                        }}
+                      >
+                        <input type='radio' name='font' key={index} />
+                        <span>{font.family}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className='upload-font-button' onClick={handleFontUpload}>
+                  Upload Font
+                </div>
+                <div className='list-choice-font-size'>
+                  <div className='list-choice-font-size-title'>{fontSize}</div>
+                  <div className='list-choice-font-size-objects'>
+                    {fontSizes.map((size: any, index: any) => (
+                      <label
+                        onClick={() => {
+                          setFontSize(size);
+                          setCookie('fontSize', size, {
+                            path: pageURL,
+                          });
+                        }}
+                      >
+                        <input type='radio' name='font' key={index} />
+                        <span>{size}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className='color-picker'>
+                  <input
+                    type='color'
+                    className='font-color'
+                    value={fontColor}
+                    onChange={handleFontColorChange}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
       <canvas
         ref={canvasRef}
@@ -2264,7 +2716,7 @@ const Canvas = () => {
           top: '40vh',
         }}
       />
-      <div ref={colorsRef} className='color-picker'>
+      {/* <div ref={colorsRef} className='color-picker'>
         <input
           id='stroke-color'
           // value={strokeColor}
@@ -2284,8 +2736,8 @@ const Canvas = () => {
             onBlur={handleBackgroundColorChange}
           />
         </div>
-      </div>
-      <div className='slider'>
+      </div> */}
+      {/* <div className='slider'>
         <input
           onBlur={handleStrokeSizeChange}
           type='range'
@@ -2306,40 +2758,8 @@ const Canvas = () => {
           step='2'
           // value={fontSize}
         />
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '110px',
-          left: '10px',
-          zIndex: 100,
-        }}
-      >
-        <input type='checkbox' onChange={handleDemoModeChange} />
-        Demo Mode
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '140px',
-          left: '10px',
-          zIndex: 100,
-        }}
-      >
-        <input type='checkbox' onChange={handleAutoShapeChange} />
-        AutoShape
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '170px',
-          left: '10px',
-          zIndex: 100,
-        }}
-      >
-        <input type='checkbox' onChange={handleVoiceRecordChange} />
-        Voice Record
-      </div>
+      </div> */}
+
       {onlineMembers.map((member: any) => (
         <div
           id={`cursor-${member.id}`}
@@ -2404,28 +2824,6 @@ const Canvas = () => {
           </div>
         ))}
       </div>
-      <div className='upload-font-button' onClick={handleFontUpload}>
-        Upload Font
-      </div>
-      <div className='list-choice'>
-        <div className='list-choice-title'>{fontFamily}</div>
-        <div className='list-choice-objects'>
-          {fonts.map((font: any, index: any) => (
-            <label
-              style={{ fontFamily: font.family }}
-              onClick={() => {
-                setFontFamily(font.family);
-                setCookie('fontFamily', font.family, {
-                  path: pageURL,
-                });
-              }}
-            >
-              <input type='radio' name='font' key={index} />
-              <span>{font.family}</span>
-            </label>
-          ))}
-        </div>
-      </div>
 
       <div
         className='loading_container'
@@ -2464,45 +2862,75 @@ const Canvas = () => {
           <Notifications userData={userData} />
         </div>
         <div
-          className={`online-members-container  ${
+          className={`online-members-container ${
             onlineMembers.length > 1 ? 'active' : ''
           }`}
         >
-          {onlineMembers.map((member: any) => (
-            <img src={member.avatar} className='online-member' />
-          ))}
+          {onlineMembers.map((member: any) =>
+            member.avatar ? (
+              <img src={member.avatar} className='online-member' />
+            ) : (
+              <div className='online-member'>
+                <div className='loading-avatar-container' />
+              </div>
+            )
+          )}
         </div>
 
-        {canvasData.admins &&
-          userData.id &&
-          canvasData!.admins!.includes(userData!.id) && (
-            <div>
-              <div
-                onClick={(e) => {
-                  handleSettingsIconClick(e);
-                }}
-                className='settings-icon-container'
-              >
-                <object
-                  className='settings-icon'
-                  data='/static/icons/settings.svg'
-                  type='image/svg+xml'
-                ></object>
-              </div>
-            </div>
-          )}
+        {/* {canvasData.admins && */}
+        {/* userData.id && */}
+        {/* // canvasData!.admins!.includes(userData!.id) && ( */}
+        <div>
+          <div
+            onClick={(e) => {
+              handleSettingsIconClick(e);
+            }}
+            className='settings-icon-container'
+          >
+            <object
+              className='settings-icon'
+              data='/static/icons/settings.svg'
+              type='image/svg+xml'
+            ></object>
+          </div>
+        </div>
+        {/* )} */}
       </div>
       {modalCanvasSettings && (
         <div ref={modalCanvasSettingsRef} className='modal-window-settings'>
           {canvasData.permitted_users.map((user: any) => (
-            <div>
-              <img src={user.avatar} className='user-avatar' />
-              <span>{user.email}</span>
+            <div className='permitted-user-container'>
+              {user.avatar ? (
+                <img src={user.avatar} className='user-avatar' />
+              ) : (
+                <div className='online-member'>
+                  <div className='loading-avatar-container' />
+                </div>
+              )}
+              <div>{user.email}</div>
             </div>
           ))}
+          <div className='color-picker-modal'>
+            <input
+              type='color'
+              value={backGroundColor}
+              onChange={handleBackgroundColorChange}
+            />
+          </div>
+          <select
+            className='grid-selection'
+            value={gridType}
+            onChange={(e) => setGridType(e.target.value)}
+          >
+            <option value='lined'>Lined</option>
+            <option value='dotted'>Dotted</option>
+            <option value='none'>None</option>
+          </select>
         </div>
       )}
-
+      <div className='alert-error hidden' ref={errorAlertRef}>
+        {errorAlert}
+      </div>
       <div className='background-dark'></div>
     </div>
   );

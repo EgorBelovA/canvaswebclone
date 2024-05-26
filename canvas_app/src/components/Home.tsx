@@ -3,23 +3,16 @@ import * as React from 'react';
 import '../scss/components/home.scss';
 import Header from './Header';
 import Footer from './Footer';
+import Language from './Language';
 import BackgroundButterflies from './BackgroundButterflies';
-import { useCookies } from 'react-cookie';
-import { useState, useLayoutEffect, useRef } from 'react';
-import russian from '../localization/Russian.json';
-import ukranian from '../localization/Ukrainian.json';
-import english from '../localization/English.json';
+// import { useCookies } from 'react-cookie';
+import { useLayoutEffect, useRef } from 'react';
 
 const HomePage: React.FC = () => {
   const backgroundVideo1 = useRef<HTMLVideoElement>(null);
   const backgroundVideo2 = useRef<HTMLVideoElement>(null);
-  const [cookies, _] = useCookies(['language']);
-  const [, setLanguage] = useState<any>({});
-  const languages: { [key: string]: any } = {
-    russian,
-    ukranian,
-    english,
-  };
+
+  const language = Language();
 
   useLayoutEffect(() => {
     backgroundVideo1.current!.onloadedmetadata = () => {
@@ -55,14 +48,6 @@ const HomePage: React.FC = () => {
     };
   }, []);
 
-  useLayoutEffect(() => {
-    if (cookies.language !== undefined) {
-      setLanguage(languages[cookies.language]);
-    } else {
-      setLanguage(languages['english']);
-    }
-  }, []);
-
   return (
     <div className='index-container'>
       <title>Canvas - Space for your creativity</title>
@@ -84,7 +69,7 @@ const HomePage: React.FC = () => {
         controls={false}
       >
         <source
-          src='/static/blue-sky-seen-directly-with-some-clouds.mp4'
+          src='/static/blue-sky-seen-directly-with-some-clouds_480p.mp4'
           type='video/mp4'
         />
         <source src='/static/blue-sky-image.png' type='image/png' />
@@ -102,7 +87,7 @@ const HomePage: React.FC = () => {
         controls={false}
       >
         <source
-          src='/static/blue-sky-seen-directly-with-some-clouds.mp4'
+          src='/static/blue-sky-seen-directly-with-some-clouds_480p.mp4'
           type='video/mp4'
         />
         <source src='/static/blue-sky-image.png' type='image/png' />
@@ -115,12 +100,13 @@ const HomePage: React.FC = () => {
       />
       <div className='index-main'>
         <Header />
-        <a href='/dashboard/' id='main-quote'>
-          {/* {language.mainPageQuote} */}
-          {/* The outside world is a reflection of the inside one */}
-          I’ll see a butterfly and want to reinterpret it through makeup
-        </a>
-        <div
+        <div className='flex1'>
+          <a href='/dashboard/' id='main-quote'>
+            {language.mainPageQuote}
+            {/* The outside world is a reflection of the inside one */}
+            {/* I’ll see a butterfly and want to reinterpret it through makeup */}
+          </a>
+          {/* <div
           style={{
             fontFamily: 'Breath_Demo',
             width: '100%',
@@ -138,10 +124,9 @@ const HomePage: React.FC = () => {
           >
             PIXEL BATTLE
           </a> */}
+          {/* </div>  */}
         </div>
-        <div>
-          <Footer />
-        </div>
+        <Footer />
       </div>
     </div>
   );

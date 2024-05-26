@@ -42,13 +42,13 @@ const DashboardHeader = (props: any) => {
 
   return (
     <div className='dashboard-container-header'>
-      <div className='dashboard-header-logo'>
+      <a className='dashboard-header-logo' href='/'>
         <object
           className='logo'
           type='image/svg+xml'
           data='/static/icons/logo_wings.svg'
         />
-      </div>
+      </a>
       <div className='dashboard-header-right'>
         <div className='dashboard-header-notifications'>
           <Notifications userData={props.userData} />
@@ -60,11 +60,15 @@ const DashboardHeader = (props: any) => {
           onMouseOut={() => setIsMouseOverProfile(false)}
           onClick={() => setIsModalFormProfile(!isModalFormProfile)}
         >
-          <img
-            src={props.userData.avatar}
-            alt='user'
-            className='dashboard-header-user-img'
-          />
+          {props.userData.avatar ? (
+            <img
+              src={props.userData.avatar}
+              className='dashboard-header-user-img'
+            />
+          ) : (
+            <div className='loading-avatar-container' />
+          )}
+
           {isMouseOverProfile && !isModalFormProfile && (
             <div className='mouse-over-profile'>
               {props.userData.first_name}

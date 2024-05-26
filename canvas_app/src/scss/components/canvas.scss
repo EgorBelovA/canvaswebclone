@@ -28,7 +28,7 @@ html {
 }
 
 .canvas-container {
-  overflow: hidden;
+  overflow: hidden !important;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -115,9 +115,36 @@ $dot-color-dark: gray;
 
 .color-picker {
   position: absolute;
-  bottom: 50px;
-  left: 10px;
-  z-index: 10;
+  background-color: #fff;
+  margin-left: calc(75px + 100px + 60px);
+  width: 50px;
+  height: 100%;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .font-color {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+  }
+}
+
+.color-picker-stroke {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 100%;
+
+  .stroke-color {
+    width: 100px;
+    height: 100px;
+  }
 }
 
 #color {
@@ -158,91 +185,152 @@ $cursorColor: #0072ce !default;
   }
 }
 
-.list-choice {
-  @include shadow_light();
-  width: 200px;
+.list-choice,
+.list-choice-font-size {
+  width: 100px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   // max-height: 100px;
   // overflow-y: scroll;
-  position: relative;
+  // display: block;
+  position: absolute;
+  border-right: 1px solid #eee;
   cursor: pointer;
-  position: absolute;
   z-index: 100;
-  top: 15px;
-  left: 15px;
-  border-radius: 7px;
-}
-.list-choice input[type='radio'] {
-  position: absolute;
-  left: -9999px;
+
+  // overflow-y: auto;
+
+  // max-height: 200px;
 }
 
-.list-choice-title {
+.list-choice-font-size {
+  border-radius: 0;
+  max-width: 60px;
+  left: 175px;
+  max-height: 100%;
+  border-top-left-radius: 7px;
+  border-bottom-left-radius: 7px;
+}
+
+.list-choice input[type='radio'],
+.list-choice-font-size input[type='radio'] {
+  position: absolute;
+  left: -9999px;
+  overflow: auto;
+}
+
+.list-choice-objects,
+.list-choice-font-size-objects {
+  position: fixed;
+  overflow: auto;
+  max-height: 150px;
+}
+
+.list-choice-title,
+.list-choice-font-size-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  display: block;
+  height: 100%;
   background: #fff;
   text-align: center;
-  padding: 0.55em 1em;
-  box-sizing: border-box;
   color: #000;
-  text-shadow: 0 1px 0 #cacaca;
-  border-radius: 7px;
+  z-index: 101;
+  border-top-left-radius: 7px;
+  border-bottom-left-radius: 7px;
+  overflow: hidden;
+  // background-color: red;
 }
-.list-choice:hover .list-choice-title {
-  border-radius: 7px 7px 0 0;
+
+.list-choice-font-size-title {
+  border-radius: 0;
 }
-.list-choice-objects label:nth-last-of-type(1) span {
-  border-radius: 0 0 7px 7px;
-}
-.list-choice input[type='radio'] + span {
+
+.list-choice input[type='radio'] + span,
+.list-choice-font-size input[type='radio'] + span {
   color: #000;
   background: #ffffff;
-  padding: 0.55em 1em;
+  padding: 10px;
+
   display: block;
   text-align: center;
   box-sizing: border-box;
   cursor: pointer;
   width: 100%;
+  height: 50px;
+  max-height: 50px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
-.list-choice-objects {
+.list-choice-objects,
+.list-choice-font-size-objects {
   position: absolute;
   top: 0;
-  padding-top: 2.1em;
+  padding-top: 48px;
   box-sizing: border-box;
   width: 100%;
   overflow: hidden;
   max-height: 0;
   transition: all 250ms ease;
 }
-.list-choice:hover .list-choice-objects input[type='radio'] + span {
+.list-choice:hover .list-choice-objects input[type='radio'] + span,
+.list-choice-font-size:hover
+  .list-choice-font-size-objects
+  input[type='radio']
+  + span {
   position: relative;
   top: 0;
   transition: all 250ms ease-in-out;
+  .list-choice {
+    border-radius: 0;
+  }
 }
-.list-choice:hover input[type='radio'] + span:hover {
+.list-choice:hover input[type='radio'] + span:hover,
+.list-choice-font-size:hover input[type='radio'] + span:hover {
   background: #bbb;
 }
-.list-choice:hover input[type='radio']:checked + span:hover {
-  background: #edbfdb;
+.list-choice:hover input[type='radio']:checked + span:hover,
+.list-choice-font-size:hover input[type='radio']:checked + span:hover {
+  background: #eee;
+  .list-choice {
+    border-radius: 0;
+  }
 }
-.list-choice input[type='radio']:checked + span {
-  background: #edbfdb;
+.list-choice input[type='radio']:checked + span,
+.list-choice-font-size input[type='radio']:checked + span {
+  background: #fff;
   position: absolute;
   top: 0em;
-  border-radius: 0.2em;
 }
-.list-choice:hover input[type='radio']:checked + span {
-  border-radius: 0;
-}
-.list-choice:hover
-  .list-choice-objects
-  label:nth-last-of-type(1)
-  input[type='radio']:checked
-  + span {
-  border-radius: 0 0 0.2em 0.2em;
-}
+// .list-choice:hover input[type='radio']:checked + span,
+// .list-choice-font-size:hover input[type='radio']:checked + span {
+//   border-radius: 0;
+// }
+// .list-choice:hover
+//   .list-choice-objects
+//   label:nth-last-of-type(1)
+//   input[type='radio']:checked
+//   + span,
+// .list-choice-font-size:hover
+//   .list-choice-font-size-objects
+//   label:nth-last-of-type(1)
+//   input[type='radio']:checked
+//   + span {
 
-.list-choice:hover .list-choice-objects {
-  max-height: 540px;
+// }
+
+.list-choice:hover .list-choice-objects,
+.list-choice-font-size:hover .list-choice-font-size-objects {
+  max-height: 240px;
+  overflow: auto;
+  .list-choice {
+    border-radius: 0;
+  }
 }
 
 #font-size {
@@ -250,12 +338,17 @@ $cursorColor: #0072ce !default;
 }
 
 .slider {
+  position: fixed;
+  @include shadow_light();
+  background-color: #fff;
+  border-radius: 7px;
   z-index: 100;
   height: 20px;
-  position: absolute;
-  left: 10px;
-  bottom: 30px;
   width: 100px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   input {
     --c: #20190c; /* active color */
@@ -263,9 +356,6 @@ $cursorColor: #0072ce !default;
     --l: 3px; /* line thickness*/
     --s: 10px; /* thumb size*/
     width: 100px;
-    position: absolute;
-    bottom: 0;
-    right: 0;
     z-index: 100;
     height: var(--s); /* needed for Firefox*/
     --_c: color-mix(in srgb, var(--c), #000 var(--p, 0%));
@@ -360,6 +450,7 @@ $cursorColor: #0072ce !default;
 
 $viewport-width: 100vw;
 $viewport-height: 100vh;
+
 .reaction-animation {
   position: absolute;
   left: 0;
@@ -481,8 +572,26 @@ $viewport-height: 100vh;
   padding-bottom: 2px;
   z-index: 100;
   background-color: #fff;
+  user-select: none;
+  -webkit-user-select: none;
 
   border-radius: 7px;
+
+  .input-radio-tool {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  .tool-icon {
+    pointer-events: none;
+    position: absolute;
+  }
+
+  .input-radio-tool:checked + .tool-icon {
+    filter: brightness(0) saturate(100%) invert(86%) sepia(42%) saturate(2562%)
+      hue-rotate(174deg) brightness(106%) contrast(102%);
+  }
 
   &.loading {
     background-color: #fff;
@@ -508,7 +617,7 @@ $viewport-height: 100vh;
     border-radius: 7px;
 
     &:hover {
-      background-color: #cbcbcb;
+      background-color: #eee;
     }
   }
 
@@ -582,7 +691,7 @@ $viewport-height: 100vh;
   width: 200px;
   height: 200px;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   background-color: #fff;
   display: flex;
   align-items: center;
@@ -707,20 +816,23 @@ $viewport-height: 100vh;
       width: 90px;
       transition: width 0.2s ease-in-out;
     }
-
-    .online-member {
-      cursor: pointer;
-      border-radius: 50%;
-      width: 35px;
-      height: 35px;
-      object-fit: cover;
-    }
   }
 }
 
+.online-member {
+  cursor: pointer;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .reaction-choose-container {
   @include shadow_light();
   position: absolute;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -730,8 +842,14 @@ $viewport-height: 100vh;
   width: 160px;
   z-index: 100;
   display: flex;
+  height: 45px;
   border-radius: 7px;
   padding: 5px;
+
+  @media screen and (max-width: 600px) {
+    overflow-x: auto;
+    width: 45px;
+  }
 
   &.loading {
     background-color: #fff;
@@ -747,8 +865,8 @@ $viewport-height: 100vh;
   .reaction-item {
     transition: opacity 1s ease-in-out;
     user-select: none;
-    width: 40px;
-    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     z-index: 100;
     cursor: pointer;
   }
@@ -763,6 +881,9 @@ $viewport-height: 100vh;
   background-color: #fff;
   z-index: 102;
   border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
 
   .user-avatar {
     object-fit: cover;
@@ -778,37 +899,183 @@ $viewport-height: 100vh;
 }
 
 .upload-font-button {
-  @include shadow_light();
   font-family: 'Breath_Demo';
   display: flex;
   align-items: center;
   justify-content: center;
-  position: absolute;
   overflow: hidden;
+  text-align: center;
   z-index: 100;
   background-color: #fff;
-  top: 15px;
-  left: 220px;
-  padding: 15px;
-  width: auto;
-  height: 35px;
-  border-radius: 7px;
+  width: 75px;
+  height: 100%;
+  margin-left: 100px;
   cursor: pointer;
+  border-right: 1px solid #eee;
 }
 
 .grid-selection {
   @include shadow_light();
-  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Breath_Demo';
   z-index: 100;
   background-color: #fff;
-  width: 80px;
+  width: 100%;
   height: 35px;
   border-radius: 7px;
   padding: 5px;
+  position: absolute;
+  bottom: 0;
+}
+
+.alert-error {
+  position: absolute;
+  z-index: 50;
+  bottom: 75px;
+  background-color: #000;
+  color: #fff;
+  padding: 5px;
+  border-radius: 7px;
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.5s ease-in-out;
+  max-width: 350px;
+  word-break: break-word;
+
+  @media screen and (max-width: 768px) {
+    max-width: 250px;
+  }
+
+  &.hidden {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+.text-editor-container {
+  position: fixed;
+  z-index: 2;
+  width: calc(100px + 60px + 75px + 50px);
+  height: 50px;
+
+  .text-editor-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .text-editor {
+    @include shadow_light();
+    border-radius: 7px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.logo-container {
+  position: absolute;
   top: 15px;
-  left: 340px;
+  left: 15px;
+  padding: 15px;
+  border-radius: 7px;
+  @include shadow_light();
+  z-index: 100;
+  background-color: #fff;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.loading {
+    background-color: #fff;
+    background: linear-gradient(110deg, #f8f8f8 25%, #fbfbfb 25%, #f8f8f8 33%);
+    background-size: 200% 100%;
+    animation: 0.75s shine linear infinite;
+
+    .logo-wings {
+      opacity: 0;
+    }
+  }
+
+  .logo-wings {
+    pointer-events: none;
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    transition: all 1s ease-in-out;
+  }
+}
+
+.permitted-user-container {
+  user-select: text;
+  width: 100%;
+  gap: 5px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  height: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.color-picker-modal {
+  position: absolute;
+  bottom: 30px;
+  width: 100%;
+  height: 30px;
+
+  input {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.zoom-container {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 30px;
+  z-index: 100;
+  bottom: 15px;
+  background-color: #fff;
+  font-family: 'Breath_Demo';
+  padding: 15px;
+  border-radius: 7px;
+  @include shadow_light();
+
+  .undo-redo-button {
+    cursor: pointer;
+  }
+
+  &.loading {
+    background-color: #fff;
+    background: linear-gradient(110deg, #f8f8f8 25%, #fbfbfb 25%, #f8f8f8 33%);
+    background-size: 200% 100%;
+    animation: 0.75s shine linear infinite;
+
+    button,
+    div {
+      opacity: 0;
+    }
+  }
+
+  button {
+    font-family: 'Breath_Demo';
+    color: #000;
+  }
+
+  @media screen and (max-width: 768px) {
+    left: 15px;
+  }
 }

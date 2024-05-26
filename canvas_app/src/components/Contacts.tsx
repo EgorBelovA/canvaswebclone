@@ -6,18 +6,16 @@ const Contacts = () => {
   return (
     <div className='index-container'>
       <div className='index-main'>
-        <div>
-          <Header />
-          <h1 style={{ color: '#fff', fontFamily: 'Breath_Demo' }}>
+        <Header />
+        <div className='contacts-container flex1'>
+          <h2 style={{ wordBreak: 'break-word' }}>
             If you have any questions to the business owner, you can write to
-            his personal e-mail &nbsp;
+            his personal e-mail&nbsp;
             <a style={{ color: 'grey' }} href='mailto:ebelov54@gmail.com'>
               ebelov54@gmail.com
             </a>
-          </h1>
-        </div>
-        <div>
-          <div className='contact-info-container'>
+          </h2>
+          <div className='contacts-info-container'>
             TAXPAYER IDENTIFICATION NUMBER (TIN) 580314395001
             <br />
             Belov Egor Andreevich

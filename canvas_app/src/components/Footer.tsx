@@ -2,12 +2,16 @@
 import '../scss/partials/_navbar.scss';
 import '../scss/components/home.scss';
 import { useState } from 'react';
-// import Country from './Country';
+import Country from './Country';
 import '../scss/components/home.scss';
+import Language from './Language';
 
 const Footer = () => {
-  const [isRegionChange, _] = useState(false);
+  const [isRegionChange] = useState(false);
   // const [locale, setLocale] = useState('US');
+
+  // const localeDefault = new Intl.DisplayNames(['en'], { type: 'region' });
+  // const locale = localeDefault.of('US');
 
   // useEffect(() => {
   //   console.log(navigator);
@@ -19,11 +23,13 @@ const Footer = () => {
 
   // const region = 'Russia';
 
-  // const languages = [
-  //   { code: 'ru', name: 'Русский', slug: 'russian' },
-  //   { code: 'en', name: 'English', slug: 'english' },
-  //   { code: 'ua', name: 'Українська', slug: 'ukranian' },
-  // ];
+  const languages = [
+    { code: 'ru', name: 'Русский', slug: 'russian' },
+    { code: 'en', name: 'English', slug: 'english' },
+    { code: 'ua', name: 'Українська', slug: 'ukranian' },
+  ];
+
+  const language = Language();
 
   // const regionName = new Intl.DisplayNames(['en'], { type: 'region' });
   // const region = regionName.of(region);
@@ -37,13 +43,13 @@ const Footer = () => {
   // };
 
   return (
-    <footer>
-      <div className='footer'>
+    <>
+      <footer className='footer'>
         <div className='footer-copyright'>
           <div className='footer-copyright-text'>
-            Copyright © 2024 Canvas. All Rights Reserved.
+            {language.copyright}
+            {/* Copyright © 2024 Canvas. All Rights Reserved. */}
           </div>
-          {/* <div>{props.language.copyright}</div> */}
           <div className='footer-links'>
             <a href='/legal/privacy-policy/'>Privacy Policy</a>
             &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -56,8 +62,15 @@ const Footer = () => {
             <a href='/contacts/'>Contacts</a>
           </div>
         </div>
-        <div className='footer-region'>Russia</div>
-      </div>
+        <div className='footer-region'>
+          <object
+            className='footer-region-icon'
+            data='/static/icons/language.svg'
+            type='image/svg+xml'
+          ></object>
+          <div>{language.language}</div>
+        </div>
+      </footer>
       {isRegionChange && (
         <div className='modal-region'>
           <div className='modal-title'>
@@ -69,13 +82,13 @@ const Footer = () => {
             </div>
           </div>
           <div className='modal-content'>
-            {/* {languages.map((language: any) => ( */}
-            {/* // <Country language={language.name} languageSlug={language.slug} /> */}
-            {/* // ))} */}
+            {languages.map((language: any) => (
+              <Country language={language.name} languageSlug={language.slug} />
+            ))}
           </div>
         </div>
       )}
-    </footer>
+    </>
   );
 };
 

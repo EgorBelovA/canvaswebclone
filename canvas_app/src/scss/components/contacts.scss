@@ -1,2 +1,16 @@
-.contact-info-container {
+.contacts-container {
+  color: #fff;
+  font-size: 20px;
+  font-family: 'Breath_Demo';
+  padding: 15px;
+  position: relative;
+
+  .contacts-info-container {
+    bottom: 0;
+    position: absolute;
+    font-family: 'Breath_Demo';
+    font-size: 14px;
+    color: grey;
+    font-style: italic;
+  }
 }

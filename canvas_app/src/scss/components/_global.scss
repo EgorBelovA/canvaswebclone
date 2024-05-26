@@ -3,6 +3,12 @@
 html,
 body {
   box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  font-family: 'Breath_Demo';
 }
 
 * {
@@ -232,4 +238,84 @@ video {
 @font-face {
   font-family: 'Breath_Demo';
   src: url('/Breath_Demo.ttf');
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar-track {
+  // background: none;
+  // border-color: #fff;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background-color: rgba(127, 127, 127, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  // background-color: rgba(127, 127, 127, 0.5);
+}
+
+::-webkit-scrollbar-track:hover {
+  background: rgba(127, 127, 127, 0.3);
+}
+
+.loading-avatar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 35px;
+  height: 35px;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-avatar-container:before,
+.loading-avatar-container:after,
+.loading-avatar-container:nth-child(1),
+.loading-avatar-container:nth-child(2),
+.loading-avatar-container:nth-child(3),
+.loading-avatar-container:nth-child(4),
+.loading-avatar-container:nth-child(5) {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  animation: spin-avatar 3s ease-in-out infinite;
+}
+
+.loading-avatar-container:before {
+  width: 20px;
+  height: 20px;
+  border-top-color: #4c74af;
+  border-bottom-color: #4c74af;
+  animation-delay: 0s;
+}
+
+.loading-avatar-container:after {
+  width: 25px;
+  height: 25px;
+  border-top-color: #2196f3;
+  border-bottom-color: #2196f3;
+  animation-delay: 0.2s;
+}
+
+.loading-avatar-container:nth-child(1) {
+  width: 30px;
+  height: 30px;
+  border-top-color: #ff74e6;
+  border-bottom-color: #ff74e6;
+  animation-delay: 0.4s;
+}
+
+@keyframes spin-avatar {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

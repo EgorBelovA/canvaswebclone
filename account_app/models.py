@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+
 
 
 class CustomUser(AbstractUser):
@@ -45,7 +47,7 @@ class SubscriptionPlan(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='userprofile')
     online = models.BooleanField(default=False)
-    subscription = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True)
+    subscription = models.OneToOneField("Subscription", blank=True, related_name='user_subscriptions', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.user.email
@@ -64,5 +66,6 @@ class Payment(models.Model):
     ), default="Pending")
 
 class Subscription(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='subscriptions')
     created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=timezone.now() + timezone.timedelta(minutes=5))
+

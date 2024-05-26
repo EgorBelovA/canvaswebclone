@@ -69,6 +69,7 @@
   // padding: 20px;
   display: flex;
   flex-direction: row;
+  align-items: center;
   overflow: hidden;
 
   @media screen and (max-width: 480px) {
@@ -242,7 +243,6 @@
 .step1,
 .step2,
 .step3 {
-  // background-color: red;
   max-width: 350px;
   padding: 30px;
   min-width: 350px;
